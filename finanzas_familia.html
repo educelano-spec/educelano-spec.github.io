@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌸 Finanzas Familia</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{--rosa:#f9a8c9;--rosa2:#fbc8dc;--lila:#c8a8e9;--lila2:#e2d4f5;--verde:#7ec8a0;--verde2:#c8f0da;--amarillo:#f9d97a;--amar2:#fef3c7;--cielo:#7ac8f9;--cielo2:#dbeeff;--durazno:#ffb97a;--duraz2:#ffe8d0;--blanco:#ffffff;--gris1:#f7f4f8;--gris2:#ede9f2;--gris3:#c0b8cc;--texto:#3d2f4a;--texto2:#7a6a8a;--shadow:0 4px 24px rgba(100,60,140,.10)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--blanco);color:var(--texto);min-height:100vh}
+
+.header{background:linear-gradient(135deg,#fff0f7,#f0ebff,#ebf8ff);border-bottom:2px solid var(--rosa2);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(200,120,180,.10);flex-wrap:wrap;gap:10px}
+.htitle{display:flex;align-items:center;gap:10px}
+.htitle h1{font-family:'Playfair Display',serif;font-size:1.45rem;background:linear-gradient(135deg,#c060a0,#7040c0);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hdate{font-size:.8rem;color:var(--texto2);font-weight:500}
+.hright{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.hkpi{background:rgba(255,255,255,.75);border-radius:10px;padding:7px 13px;text-align:center;border:1px solid var(--gris2)}
+.hkpi-l{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto2)}
+.hkpi-v{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600}
+
+.nav{display:flex;gap:3px;padding:12px 24px 0;background:linear-gradient(135deg,#fff0f7,#f0ebff);flex-wrap:wrap;border-bottom:2px solid var(--gris2)}
+.tbtn{padding:8px 16px;border:none;border-radius:9px 9px 0 0;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.45);color:var(--texto2)}
+.tbtn:hover{background:rgba(255,255,255,.85);color:var(--texto)}
+.tbtn.active{background:var(--blanco);color:var(--texto);box-shadow:0 -2px 8px rgba(180,100,200,.12);border-top:3px solid var(--lila)}
+
+.main{padding:22px 24px;max-width:1440px;margin:0 auto}
+.sec{display:none}.sec.active{display:block}
+
+.card{background:var(--blanco);border-radius:16px;padding:20px;box-shadow:var(--shadow);border:1.5px solid var(--gris2)}
+.ctitle{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:13px}
+.mb{margin-bottom:16px}
+
+.kpi{border-radius:13px;padding:16px;display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;right:-16px;top:-16px;width:65px;height:65px;border-radius:50%;opacity:.14}
+.kpi.v{background:var(--verde2);border:1.5px solid var(--verde)}.kpi.v::before{background:var(--verde)}
+.kpi.r{background:var(--rosa2);border:1.5px solid var(--rosa)}.kpi.r::before{background:var(--rosa)}
+.kpi.l{background:var(--lila2);border:1.5px solid var(--lila)}.kpi.l::before{background:var(--lila)}
+.kpi.a{background:var(--amar2);border:1.5px solid var(--amarillo)}.kpi.a::before{background:var(--amarillo)}
+.kpi.c{background:var(--cielo2);border:1.5px solid var(--cielo)}.kpi.c::before{background:var(--cielo)}
+.kpi.d{background:var(--duraz2);border:1.5px solid var(--durazno)}.kpi.d::before{background:var(--durazno)}
+.klbl{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto2)}
+.kval{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:600;color:var(--texto)}
+.ksub{font-size:.72rem;color:var(--texto2)}
+
+.fr{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:11px;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:5px;flex:1;min-width:120px}
+.fg label{font-size:.76rem;font-weight:600;color:var(--texto2)}
+.fg input,.fg select{padding:8px 11px;border:1.5px solid var(--gris2);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.84rem;background:var(--gris1);color:var(--texto);outline:none;transition:border .2s}
+.fg input:focus,.fg select:focus{border-color:var(--lila);background:#fff}
+
+.btn{padding:8px 18px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.83rem;cursor:pointer;transition:all .2s;white-space:nowrap}
+.bp{background:linear-gradient(135deg,var(--lila),#a060d0);color:#fff;box-shadow:0 3px 10px rgba(160,100,200,.25)}
+.bp:hover{transform:translateY(-1px)}
+.bs{background:linear-gradient(135deg,var(--verde),#4aaa78);color:#fff}
+.bd{background:linear-gradient(135deg,#fda0a0,#e05050);color:#fff;padding:4px 11px;font-size:.76rem}
+.bw{background:linear-gradient(135deg,var(--amarillo),#e8b830);color:#444}
+.bsm{padding:5px 11px;font-size:.76rem}
+
+.tw{overflow-x:auto;border-radius:11px;border:1.5px solid var(--gris2)}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+thead th{padding:10px 13px;text-align:left;font-weight:600;background:var(--gris1);color:var(--texto2);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+tbody tr{border-top:1px solid var(--gris2);transition:background .15s}
+tbody tr:hover{background:var(--gris1)}
+tbody td{padding:9px 13px}
+
+.tag{display:inline-block;padding:3px 8px;border-radius:20px;font-size:.71rem;font-weight:600}
+.ting{background:var(--verde2);color:#2a7a50}.tegr{background:var(--rosa2);color:#a03060}
+.tpen{background:var(--amar2);color:#7a5a10}.tpag{background:var(--cielo2);color:#1060a0}
+
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:9px}
+.sh h2{font-family:'Playfair Display',serif;font-size:1.2rem;font-style:italic}
+
+.pw{margin:6px 0}
+.pl{display:flex;justify-content:space-between;font-size:.76rem;color:var(--texto2);margin-bottom:3px}
+.pb{height:8px;background:var(--gris2);border-radius:8px;overflow:hidden}
+.pf{height:100%;border-radius:8px;transition:width .5s}
+
+.tli{display:flex;align-items:center;gap:11px;padding:9px 13px;border-radius:9px;background:var(--gris1);border:1.5px solid var(--gris2);margin-bottom:5px}
+.tld{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.di{background:var(--verde)}.de{background:var(--rosa)}.dl{background:var(--lila)}.dm{background:var(--amarillo)}.dw{background:#f87070}
+.tlt{flex:1;font-size:.82rem}
+.tla{font-weight:700;font-size:.86rem;white-space:nowrap}
+.pos{color:#2a8a50}.neg{color:#c03060}.neu{color:var(--texto2)}
+
+.al{padding:11px 14px;border-radius:10px;font-size:.83rem;margin-bottom:10px;display:flex;align-items:flex-start;gap:8px}
+.aw{background:var(--amar2);border:1.5px solid var(--amarillo);color:#6a4a10}
+.ao{background:var(--verde2);border:1.5px solid var(--verde);color:#1a5a38}
+.ai{background:var(--cielo2);border:1.5px solid var(--cielo);color:#104060}
+.ab{background:var(--rosa2);border:1.5px solid var(--rosa);color:#8a1040}
+
+.div{height:2px;background:linear-gradient(90deg,transparent,var(--rosa2),var(--lila2),var(--cielo2),transparent);margin:14px 0;border-radius:2px}
+
+/* NEED BOX */
+.nbox{background:linear-gradient(135deg,#fff0f7,#f0ebff);border:2px solid var(--lila);border-radius:14px;padding:18px;margin-bottom:16px}
+.nbox h3{font-family:'Playfair Display',serif;font-size:1.05rem;margin-bottom:10px;color:var(--texto)}
+.nrow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed var(--gris2);font-size:.84rem}
+.nrow:last-child{border:none;font-weight:700;font-size:.92rem;padding-top:8px}
+.ntok{color:#2a8a50;font-size:1.05rem;font-weight:800}.ntbad{color:#c03060;font-size:1.05rem;font-weight:800}
+
+.escbadge{background:linear-gradient(135deg,var(--lila2),var(--cielo2));border:1.5px solid var(--lila);border-radius:11px;padding:12px 16px;margin-bottom:9px;font-size:.84rem}
+
+.mo{display:none;position:fixed;inset:0;background:rgba(60,30,80,.4);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center}
+.mo.open{display:flex}
+.md{background:#fff;border-radius:16px;padding:24px 28px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(100,40,140,.2)}
+.md h3{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:14px}
+
+@media(max-width:960px){.g4,.g5{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}.main{padding:12px}}
+@media(max-width:600px){.g4,.g5,.g3,.g2{grid-template-columns:1fr}.htitle h1{font-size:1.15rem}.nav{padding:9px 9px 0}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="htitle">
+    <span style="font-size:1.6rem">🌸</span>
+    <div><h1>Finanzas Familia</h1><div class="hdate" id="hd"></div></div>
+  </div>
+  <div class="hright">
+    <div id="fbStatus" style="font-size:.7rem;padding:5px 10px;border-radius:8px;background:var(--gris2);color:var(--texto2);font-weight:600">⏳ Conectando…</div>
+    <div class="hkpi"><div class="hkpi-l">💚 Ing.Mes</div><div class="hkpi-v" id="hI" style="color:#2a8a50">A$0</div></div>
+    <div class="hkpi"><div class="hkpi-l">🌸 Compromisos</div><div class="hkpi-v" id="hE" style="color:#c03060">A$0</div></div>
+    <div class="hkpi"><div class="hkpi-l">⚖️ Saldo</div><div class="hkpi-v" id="hS">A$0</div></div>
+    <div class="hkpi" style="background:var(--lila2);border-color:var(--lila)">
+      <div class="hkpi-l">📈 Necesitás/mes</div>
+      <div class="hkpi-v" id="hN" style="color:#7030b0">A$0</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="tbtn active" onclick="ST('dash')">🏠 Resumen</button>
+  <button class="tbtn" onclick="ST('ing')">💚 Ingresos</button>
+  <button class="tbtn" onclick="ST('egr')">🌸 Egresos</button>
+  <button class="tbtn" onclick="ST('plan')">📅 Plan</button>
+  <button class="tbtn" onclick="ST('prest')">🔑 Préstamos</button>
+  <button class="tbtn" onclick="ST('ahorro')">🐣 Ahorro</button>
+  <button class="tbtn" onclick="ST('flujo')">📊 Flujo</button>
+  <button class="tbtn" onclick="ST('cfg')">⚙️ Config</button>
+</div>
+
+<div class="main">
+
+<!-- DASHBOARD -->
+<div id="s-dash" class="sec active">
+  <div class="sh"><h2>✨ Panel Principal</h2>
+    <div style="display:flex;gap:7px"><button class="btn bs bsm" onclick="ST('ing')">+ Ingreso</button><button class="btn bp bsm" onclick="ST('egr')">+ Egreso</button></div>
+  </div>
+  <div class="g5 mb" id="kpis"></div>
+  <div class="nbox mb" id="nb1"></div>
+  <div class="g2 mb">
+    <div class="card"><div class="ctitle">🚦 Estado de Compromisos</div><div id="ap"></div></div>
+    <div class="card"><div class="ctitle">🌈 Distribución Mensual</div><div id="dg"></div></div>
+  </div>
+  <div class="g3">
+    <div class="card"><div class="ctitle">📅 Próximos Pendientes</div><div id="pv"></div></div>
+    <div class="card"><div class="ctitle">🐣 Metas de Ahorro</div><div id="mr"></div></div>
+    <div class="card"><div class="ctitle">📆 Esta Semana</div><div id="sr"></div></div>
+  </div>
+</div>
+
+<!-- INGRESOS -->
+<div id="s-ing" class="sec">
+  <div class="sh"><h2>💚 Ingresos</h2></div>
+  <div class="g2 mb">
+    <div class="card">
+      <div class="ctitle">➕ Registrar Ingreso</div>
+      <div class="fr">
+        <div class="fg"><label>Fuente</label><input type="text" id="iF" placeholder="Ej: Sueldo, Freelance..."></div>
+        <div class="fg" style="max-width:165px"><label>Tipo</label>
+          <select id="iT"><option value="fijo1">Fijo Semanal 1</option><option value="fijo2">Fijo Semanal 2</option><option value="fijo3">Fijo Semanal 3</option><option value="quincena">Quincena</option><option value="variable">Variable/Extra</option></select>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Monto (AUD)</label><input type="number" id="iM" placeholder="0.00" step="0.01"></div>
+        <div class="fg"><label>Fecha</label><input type="date" id="iFe"></div>
+      </div>
+      <div class="fr"><div class="fg"><label>Nota</label><input type="text" id="iN" placeholder="Detalle..."></div></div>
+      <button class="btn bs" onclick="addIng()">💚 Registrar</button>
+    </div>
+    <div class="card"><div class="ctitle">📊 Resumen</div><div id="iRes"></div></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">📋 Historial</div>
+    <div class="tw"><table><thead><tr><th>Fecha</th><th>Fuente</th><th>Tipo</th><th>Monto</th><th>Nota</th><th></th></tr></thead>
+    <tbody id="tI"></tbody></table></div>
+  </div>
+</div>
+
+<!-- EGRESOS -->
+<div id="s-egr" class="sec">
+  <div class="sh"><h2>🌸 Egresos</h2></div>
+  <div class="g2 mb">
+    <div class="card">
+      <div class="ctitle">➕ Registrar Egreso</div>
+      <div class="fr">
+        <div class="fg"><label>Descripción</label><input type="text" id="eD" placeholder="Ej: Supermercado..."></div>
+        <div class="fg" style="max-width:180px"><label>Categoría</label>
+          <select id="eC">
+            <option value="renta">🏠 Renta</option><option value="super">🛒 Supermercado</option>
+            <option value="telefonia">📱 Telefonía</option><option value="transporte">🚗 Transporte</option>
+            <option value="educacion">📚 Educación</option><option value="clases">🎓 Clases</option>
+            <option value="escuela">🏫 Escuela Samu</option><option value="ahorro">🐣 Ahorro</option>
+            <option value="prestamo">💸 Préstamo</option><option value="visa">💳 Visa/Tarj.</option>
+            <option value="salud">🏥 Salud</option><option value="diezmo">🙏 Diezmo</option>
+            <option value="firecamp">🏕️ Fire Camp</option><option value="varios">🎀 Varios</option>
+          </select>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Monto (AUD)</label><input type="number" id="eM" placeholder="0.00"></div>
+        <div class="fg"><label>Fecha/Venc.</label><input type="date" id="eFe"></div>
+        <div class="fg" style="max-width:150px"><label>Frecuencia</label>
+          <select id="eFr"><option value="semanal">Semanal</option><option value="mensual">Mensual</option><option value="quincenal">Quincenal</option><option value="cada25m">Cada 2.5 meses</option><option value="unico">Único</option></select>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg" style="max-width:155px"><label>Estado</label>
+          <select id="eEs"><option value="pendiente">⏳ Pendiente</option><option value="pagado">✅ Pagado</option></select>
+        </div>
+        <div class="fg"><label>Nota</label><input type="text" id="eN" placeholder="Detalle..."></div>
+      </div>
+      <button class="btn bp" onclick="addEgr()">🌸 Registrar</button>
+    </div>
+    <div class="card"><div class="ctitle">📊 Por Categoría</div><div id="catRes"></div></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;gap:7px;margin-bottom:11px;flex-wrap:wrap">
+      <button class="btn bsm" id="fT" onclick="filtE('todos')" style="background:var(--lila);color:#fff">Todos</button>
+      <button class="btn bsm" id="fP" onclick="filtE('pendiente')" style="background:var(--gris2)">⏳ Pend.</button>
+      <button class="btn bsm" id="fPa" onclick="filtE('pagado')" style="background:var(--gris2)">✅ Pag.</button>
+    </div>
+    <div class="tw"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Cat.</th><th>Monto</th><th>Freq.</th><th>Estado</th><th></th></tr></thead>
+    <tbody id="tE"></tbody></table></div>
+  </div>
+</div>
+
+<!-- PLANIFICACIÓN -->
+<div id="s-plan" class="sec">
+  <div class="sh"><h2>📅 Planificación</h2><button class="btn bp bsm" onclick="rPlan()">🔄 Recalcular</button></div>
+  <div id="aP" class="mb"></div>
+  <div class="nbox mb" id="nb2"></div>
+  <div class="g2 mb">
+    <div class="card">
+      <div class="ctitle">💰 Ingresos (semana actual)</div>
+      <div id="pI"></div>
+      <div class="div"></div>
+      <div style="display:flex;justify-content:space-between;font-weight:700;font-size:.93rem">
+        <span>Total:</span><span id="pTI" class="pos">A$0</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">🗓️ Compromisos Pendientes</div>
+      <div id="pE"></div>
+      <div class="div"></div>
+      <div style="display:flex;justify-content:space-between;font-weight:700;font-size:.93rem">
+        <span>Total comprometido:</span><span id="pTE" class="neg">A$0</span>
+      </div>
+    </div>
+  </div>
+  <div class="card mb"><div class="ctitle">⚖️ Balance</div><div class="g5" id="pB"></div><div class="div"></div><div id="pAF"></div></div>
+  <div class="card">
+    <div class="ctitle">📋 Compromisos Fijos Mensuales Configurados</div>
+    <div id="pFijos"></div>
+  </div>
+</div>
+
+<!-- PRÉSTAMOS -->
+<div id="s-prest" class="sec">
+  <div class="sh"><h2>🔑 Préstamos</h2></div>
+  <div class="g2 mb">
+    <div class="card">
+      <div class="ctitle">➕ Nuevo Préstamo</div>
+      <div class="fr">
+        <div class="fg"><label>Nombre</label><input type="text" id="prN" placeholder="Ej: Préstamo Tia Mamu"></div>
+        <div class="fg" style="max-width:155px"><label>Tipo</label>
+          <select id="prT"><option value="familiar">👨‍👩‍👧 Familiar</option><option value="auto">🚗 Auto</option><option value="personal">👤 Personal</option><option value="hipotecario">🏠 Hipotecario</option><option value="tarjeta">💳 Tarjeta</option><option value="otro">📦 Otro</option></select>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Monto Total</label><input type="number" id="prTo" placeholder="0.00"></div>
+        <div class="fg"><label>Cuota Mensual</label><input type="number" id="prC" placeholder="0.00"></div>
+      </div>
+      <div class="fr">
+        <div class="fg" style="max-width:105px"><label>Cuotas totales</label><input type="number" id="prCT" placeholder="12"></div>
+        <div class="fg" style="max-width:105px"><label>Cuotas pagas</label><input type="number" id="prCP" placeholder="0"></div>
+        <div class="fg" style="max-width:105px"><label>Día venc.</label><input type="number" id="prD" placeholder="1" min="1" max="31"></div>
+      </div>
+      <div class="fr"><div class="fg"><label>Nota</label><input type="text" id="prNo" placeholder="Banco, condiciones..."></div></div>
+      <button class="btn bp" onclick="addPrest()">🔑 Agregar</button>
+    </div>
+    <div class="card"><div class="ctitle">💡 Resumen Deudas</div><div id="rD"></div></div>
+  </div>
+  <div id="lP"></div>
+</div>
+
+<!-- AHORRO -->
+<div id="s-ahorro" class="sec">
+  <div class="sh"><h2>🐣 Plan de Ahorro Múltiple</h2></div>
+  <div class="g2 mb">
+    <div class="card">
+      <div class="ctitle">✨ Nueva Meta</div>
+      <div class="fr">
+        <div class="fg"><label>Nombre de la Meta</label><input type="text" id="mN" placeholder="Ej: Vacaciones Japón..."></div>
+        <div class="fg" style="max-width:38px"><label>Emoji</label><input type="text" id="mE" placeholder="🌴" maxlength="2"></div>
+      </div>
+      <div class="fr">
+        <div class="fg" style="max-width:175px"><label>Categoría</label>
+          <select id="mC"><option value="vacaciones">🌴 Vacaciones</option><option value="auto">🚗 Auto</option><option value="casa">🏠 Casa</option><option value="electronico">📱 Electrónico</option><option value="educacion">📚 Educación</option><option value="emergencia">🆘 Emergencia</option><option value="escuela">🎓 Escuela</option><option value="otro">🎀 Otro</option></select>
+        </div>
+        <div class="fg"><label>Objetivo (AUD)</label><input type="number" id="mO" placeholder="0.00" oninput="previsualizarMeta()"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Ya ahorrado (AUD)</label><input type="number" id="mA" placeholder="0.00" oninput="previsualizarMeta()"></div>
+        <div class="fg"><label>Fecha límite 📅</label><input type="date" id="mF" oninput="previsualizarMeta()"></div>
+      </div>
+      <div id="metaPreview" style="display:none;background:var(--lila2);border:1.5px solid var(--lila);border-radius:10px;padding:12px;margin-bottom:12px;font-size:.84rem">
+        <div style="font-weight:700;color:#5020a0;margin-bottom:6px">📊 Cálculo automático:</div>
+        <div id="metaPreviewContent"></div>
+      </div>
+      <button class="btn bw" onclick="addMeta()">🐣 Crear Meta — egreso automático</button>
+    </div>
+    <div class="card"><div class="ctitle">📊 Plan Global</div><div id="raDiv"></div></div>
+  </div>
+  <div id="lM"></div>
+</div>
+
+<!-- FLUJO -->
+<div id="s-flujo" class="sec">
+  <div class="sh"><h2>📊 Flujo de Efectivo</h2>
+    <div style="display:flex;gap:6px">
+      <button class="btn bsm" id="bFS" onclick="setFlujo('semanal')" style="background:var(--lila);color:#fff">Semanal</button>
+      <button class="btn bsm" id="bFM" onclick="setFlujo('mensual')" style="background:var(--gris2)">Mensual</button>
+    </div>
+  </div>
+  <div class="g5 mb" id="fK"></div>
+  <div class="nbox mb" id="nb3"></div>
+  <div class="g2 mb">
+    <div class="card"><div class="ctitle">📈 Timeline</div><div id="fTL"></div></div>
+    <div class="card"><div class="ctitle">🌈 Por Categoría</div><div id="fCat"></div></div>
+  </div>
+  <div class="card"><div class="ctitle">💡 Análisis y Recomendaciones</div><div id="fRec"></div></div>
+</div>
+
+<!-- CONFIG -->
+<div id="s-cfg" class="sec">
+  <div class="sh"><h2>⚙️ Configuración</h2></div>
+  <div class="g2 mb">
+    <div class="card">
+      <div class="ctitle">👨‍👩‍👧 Fuentes de Ingreso</div>
+      <p style="font-size:.8rem;color:var(--texto2);margin-bottom:11px">Configurá tus ingresos fijos para calcular la brecha automáticamente.</p>
+      <div id="cfgFL"></div><div class="div"></div>
+      <div class="fr">
+        <div class="fg"><label>Nombre</label><input type="text" id="cN" placeholder="Ej: Sueldo Rene"></div>
+        <div class="fg" style="max-width:155px"><label>Tipo</label>
+          <select id="cT"><option value="fijo1">Fijo Semanal 1</option><option value="fijo2">Fijo Semanal 2</option><option value="fijo3">Fijo Semanal 3</option><option value="quincena">Quincena</option></select>
+        </div>
+        <div class="fg" style="max-width:125px"><label>Monto estim.</label><input type="number" id="cM" placeholder="0.00"></div>
+      </div>
+      <button class="btn bp" onclick="addFuente()">+ Agregar Fuente</button>
+    </div>
+    <div class="card">
+      <div class="ctitle">📋 Compromisos Fijos Mensuales</div>
+      <p style="font-size:.8rem;color:var(--texto2);margin-bottom:11px">Base para calcular cuánto necesitás ingresar.</p>
+      <div id="cfgFI"></div><div class="div"></div>
+      <div class="fr">
+        <div class="fg"><label>Descripción</label><input type="text" id="fD" placeholder="Ej: Renta mensual"></div>
+        <div class="fg" style="max-width:125px"><label>Monto mensual</label><input type="number" id="fM" placeholder="0.00"></div>
+        <div class="fg" style="max-width:85px"><label>Día venc.</label><input type="number" id="fDi" placeholder="1"></div>
+      </div>
+      <button class="btn bp" onclick="addFijo()">+ Agregar</button>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">🙏 Diezmo</div>
+      <div class="fr">
+        <div class="fg"><label>Porcentaje</label><input type="number" id="cDi" value="10" min="1" max="30" step="0.5"></div>
+        <div class="fg"><label>Iglesia / Destino</label><input type="text" id="cIg" placeholder="Nombre..."></div>
+      </div>
+      <button class="btn bw" onclick="saveDiezmo()">Guardar</button>
+    </div>
+    <div class="card">
+      <div class="ctitle">💾 Datos</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn bs" onclick="expDatos()">⬇️ Exportar JSON</button>
+        <label class="btn bp" style="cursor:pointer;text-align:center">⬆️ Importar JSON<input type="file" id="impF" accept=".json" style="display:none" onchange="impDatos(event)"></label>
+        <button class="btn bd" onclick="cfReset()" style="padding:8px 18px;font-size:.83rem">🗑️ Borrar todo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="mo" id="mReset">
+  <div class="md">
+    <h3>⚠️ ¿Borrar todos los datos?</h3>
+    <p style="font-size:.86rem;color:var(--texto2);margin:10px 0 16px">Esta acción no se puede deshacer.</p>
+    <div style="display:flex;gap:9px">
+      <button class="btn bd" onclick="doReset()" style="padding:8px 18px;font-size:.84rem">Sí, borrar</button>
+      <button class="btn" onclick="closeModal()" style="background:var(--gris2)">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+window._fbInit = { initializeApp, getDatabase, ref, set, onValue };
+// El módulo ES siempre corre DESPUÉS del script clásico.
+// El script clásico ya dejó _appStart lista en window, la llamamos acá.
+if(typeof window._appStart === 'function') window._appStart();
+</script>
+<script>
+// ══════════ FIREBASE CONFIG ══════════
+// 👇 REEMPLAZÁ estos valores con los de tu proyecto Firebase
+const FB_CONFIG = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_PROYECTO.firebaseapp.com",
+  databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
+  projectId: "TU_PROYECTO",
+  storageBucket: "TU_PROYECTO.appspot.com",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "TU_APP_ID"
+};
+
+let fbDb=null, fbRef=null, fbSet=null, fbOnValue=null;
+
+function initFirebase(){
+  if(!window._fbInit){console.warn('Firebase no cargó');return false;}
+  const {initializeApp,getDatabase,ref,set,onValue}=window._fbInit;
+  fbRef=ref; fbSet=set; fbOnValue=onValue;
+  const fbApp=initializeApp(FB_CONFIG);
+  fbDb=getDatabase(fbApp);
+  return true;
+}
+
+const FB_PATH = 'finanzas_familia/datos';
+
+// ══════════ DB ══════════
+const KEY='ffv3';
+const DFT=()=>({ingresos:[],egresos:[],prestamos:[],metas:[],fuentes:[],fijos:[],config:{diezmo:10,iglesia:'',initialized:false}});
+let db=DFT();
+let fbSynced=false;
+
+// Guardar: escribe en Firebase (fuente de verdad) y en localStorage como caché
+const save=()=>{
+  localStorage.setItem(KEY,JSON.stringify(db));
+  if(fbDb&&fbSet&&fbRef){
+    fbSet(fbRef(fbDb, FB_PATH), db)
+      .then(()=>setFbStatus('ok'))
+      .catch(()=>setFbStatus('error'));
+  }
+};
+
+function setFbStatus(s){
+  const el=document.getElementById('fbStatus');
+  if(!el)return;
+  if(s==='ok'){el.textContent='☁️ Sincronizado';el.style.background='var(--verde2)';el.style.color='#1a5a38';}
+  else if(s==='error'){el.textContent='⚠️ Sin conexión';el.style.background='var(--amar2)';el.style.color='#6a4a10';}
+  else if(s==='live'){el.textContent='🟢 En vivo';el.style.background='var(--cielo2)';el.style.color='#104060';}
+  else{el.textContent='⏳ Conectando…';el.style.background='var(--gris2)';el.style.color='var(--texto2)';}
+}
+
+// Escuchar cambios en tiempo real desde Firebase
+function initFirebaseSync(){
+  if(!initFirebase()){
+    // Firebase no disponible: usar solo localStorage
+    setFbStatus('error');
+    load();initData();renderAll();
+    return;
+  }
+  fbOnValue(fbRef(fbDb, FB_PATH), snap=>{
+    const val=snap.val();
+    if(val){
+      db={...DFT(),...val};
+      ['ingresos','egresos','prestamos','metas','fuentes','fijos'].forEach(k=>{if(!Array.isArray(db[k]))db[k]=[];});
+      localStorage.setItem(KEY,JSON.stringify(db));
+      setFbStatus('live');
+      if(fbSynced) renderAll();
+    } else {
+      setFbStatus('ok');
+    }
+    if(!fbSynced){fbSynced=true;initData();renderAll();}
+  }, err=>{
+    console.warn('Firebase error, usando localStorage',err);
+    setFbStatus('error');
+    load();initData();renderAll();
+  });
+}
+
+function load(){
+  const d=localStorage.getItem(KEY);
+  if(d){try{const p=JSON.parse(d);db={...DFT(),...p};}catch(e){}}
+}
+
+// ══════════ DATOS INICIALES REALES ══════════
+function initData(){
+  if(db.config && db.config.initialized) return;
+  // Compromisos fijos mensuales en AUD
+  // Renta: A$800/sem × 4.33 = A$3,467/mes
+  // Escuela Samu: A$3080 / 2.5 meses = A$1,232/mes prorrateado
+  db.fijos=[
+    {id:uid(),desc:'💸 Préstamo Tia Mamu',monto:1000,dia:1},
+    {id:uid(),desc:'🛒 Supermercado',monto:1600,dia:1},
+    {id:uid(),desc:'📱 Optus Telefonía',monto:205,dia:1},
+    {id:uid(),desc:'🚗 Transporte',monto:800,dia:1},
+    {id:uid(),desc:'🐣 Ahorro planificado',monto:750,dia:1},
+    {id:uid(),desc:'📚 Pago Estudios (1/2)',monto:1800,dia:1},
+    {id:uid(),desc:'🎀 Varios',monto:1000,dia:1},
+    {id:uid(),desc:'🏠 Renta (A$800/sem × 4.33)',monto:3467,dia:1},
+    {id:uid(),desc:'🎓 Samu Classes',monto:200,dia:1},
+    {id:uid(),desc:'🏕️ Fire Camp',monto:319,dia:1},
+    {id:uid(),desc:'🏫 Escuela Samu (A$3080 c/2.5m prorr.)',monto:1232,dia:1},
+  ];
+  // Préstamo Tia Mamu precargado
+  if(!db.prestamos.length){
+    db.prestamos.push({id:uid(),nombre:'Préstamo Tia Mamu',tipo:'familiar',total:0,cuota:1000,cuotasTot:12,cuotasPag:0,dia:1,nota:'Pago mensual fijo'});
+  }
+  // Marcar como inicializado para no repetir al borrar fijos manualmente
+  db.config.initialized = true;
+  save();
+}
+
+// ══════════ UTILS ══════════
+const fmt=n=>'A$'+(parseFloat(n)||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const hoy=()=>new Date().toISOString().split('T')[0];
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function semAct(){const d=new Date(),l=new Date(d);l.setDate(d.getDate()-((d.getDay()+6)%7));const f=new Date(l);f.setDate(l.getDate()+6);return{ini:l.toISOString().split('T')[0],fin:f.toISOString().split('T')[0]};}
+const inSem=fe=>{const{ini,fin}=semAct();return fe>=ini&&fe<=fin;};
+const inMes=fe=>fe.startsWith(new Date().toISOString().slice(0,7));
+const CE={renta:'🏠',super:'🛒',telefonia:'📱',transporte:'🚗',educacion:'📚',clases:'🎓',escuela:'🏫',ahorro:'🐣',prestamo:'💸',visa:'💳',salud:'🏥',diezmo:'🙏',firecamp:'🏕️',varios:'🎀'};
+
+// ══════════ CÁLCULOS CORE ══════════
+function calcTot(){
+  const iM=db.ingresos.filter(i=>inMes(i.fecha));
+  const ti=iM.reduce((s,i)=>s+i.monto,0);
+  const fuentesMes=calcFuentesMes();
+  const fijosM=db.fijos.reduce((s,f)=>s+f.monto,0);
+  // El diezmo ahora vive como egreso real, pero lo mostramos separado para los KPIs
+  const diezmoReg=db.egresos.filter(e=>e.cat==='diezmo'&&inMes(e.fecha)).reduce((s,e)=>s+e.monto,0);
+  // Para el plan de necesidades usamos estimado sobre fuentes
+  const diezmoFuentes=fuentesMes*(db.config.diezmo/100);
+  const ahorroMetas=db.metas.reduce((s,m)=>s+m.semanal,0)*4.33;
+  const necTotal=fijosM+diezmoFuentes+ahorroMetas;
+  // Egresos totales incluye diezmo (ya es un egreso real)
+  const egrsAll=db.egresos.reduce((s,e)=>s+e.monto,0);
+  // El diezmo ya está dentro de egrsAll como egreso real, no se resta dos veces
+  const saldoLibre=ti-egrsAll;
+  const gap=necTotal-fuentesMes;
+  return{ti,fuentesMes,fijosM,diezmoReg,diezmoFuentes,ahorroMetas,necTotal,egrsAll,saldoLibre,gap};
+}
+function calcFuentesMes(){
+  return db.fuentes.reduce((s,f)=>s+(f.tipo==='quincena'?f.monto*2:f.monto*4.33),0);
+}
+
+// ══════════ NAV ══════════
+function ST(t){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s-'+t).classList.add('active');
+  const tabs=['dash','ing','egr','plan','prest','ahorro','flujo','cfg'];
+  document.querySelectorAll('.tbtn')[tabs.indexOf(t)]?.classList.add('active');
+  renderAll();
+}
+
+// ══════════ CRUD ══════════
+function addIng(){
+  const f=document.getElementById('iF').value.trim(),m=parseFloat(document.getElementById('iM').value);
+  if(!f||!m||m<=0){alert('Completá fuente y monto');return}
+  const ingId=uid();
+  const fecha=document.getElementById('iFe').value||hoy();
+  db.ingresos.push({id:ingId,fuente:f,monto:m,fecha,tipo:document.getElementById('iT').value,nota:document.getElementById('iN').value.trim()});
+  // Generar egreso de diezmo automáticamente vinculado a este ingreso
+  const montoDiezmo=parseFloat((m*(db.config.diezmo/100)).toFixed(2));
+  const diezmoId=uid();
+  db.egresos.push({
+    id:diezmoId,
+    desc:`🙏 Diezmo — ${f}`,
+    monto:montoDiezmo,
+    cat:'diezmo',
+    fecha,
+    freq:'unico',
+    estado:'pendiente',
+    nota:`${db.config.diezmo}% de A$${m.toFixed(2)} (${f})`,
+    ingId  // referencia al ingreso origen
+  });
+  save();['iF','iM','iN'].forEach(id=>document.getElementById(id).value='');renderAll();
+}
+function delIng(id){
+  // Al eliminar un ingreso, eliminar también su diezmo vinculado
+  db.egresos=db.egresos.filter(e=>e.ingId!==id);
+  db.ingresos=db.ingresos.filter(i=>i.id!==id);
+  save();renderAll();
+};
+
+function addEgr(){
+  const d=document.getElementById('eD').value.trim(),m=parseFloat(document.getElementById('eM').value);
+  if(!d||!m||m<=0){alert('Completá descripción y monto');return}
+  db.egresos.push({id:uid(),desc:d,monto:m,cat:document.getElementById('eC').value,fecha:document.getElementById('eFe').value||hoy(),freq:document.getElementById('eFr').value,estado:document.getElementById('eEs').value,nota:document.getElementById('eN').value.trim()});
+  save();['eD','eM','eN'].forEach(id=>document.getElementById(id).value='');renderAll();
+}
+const delEgr=id=>{db.egresos=db.egresos.filter(e=>e.id!==id);save();renderAll()};
+function togPag(id){const e=db.egresos.find(e=>e.id===id);if(e){e.estado=e.estado==='pagado'?'pendiente':'pagado';save();renderAll()}}
+
+let filtEgr='todos';
+function filtE(f){
+  filtEgr=f;
+  ['fT','fP','fPa'].forEach(id=>{document.getElementById(id).style.background='var(--gris2)';document.getElementById(id).style.color='var(--texto)'});
+  const m={todos:'fT',pendiente:'fP',pagado:'fPa'};
+  document.getElementById(m[f]).style.background='var(--lila)';document.getElementById(m[f]).style.color='#fff';
+  rTabEgr();
+}
+
+function addPrest(){
+  const n=document.getElementById('prN').value.trim(),c=parseFloat(document.getElementById('prC').value);
+  if(!n||!c||c<=0){alert('Completá nombre y cuota');return}
+  db.prestamos.push({id:uid(),nombre:n,tipo:document.getElementById('prT').value,total:parseFloat(document.getElementById('prTo').value)||0,cuota:c,cuotasTot:parseInt(document.getElementById('prCT').value)||12,cuotasPag:parseInt(document.getElementById('prCP').value)||0,dia:parseInt(document.getElementById('prD').value)||1,nota:document.getElementById('prNo').value.trim()});
+  save();['prN','prTo','prC','prCT','prCP','prD','prNo'].forEach(id=>document.getElementById(id).value='');renderAll();
+}
+const delPrest=id=>{db.prestamos=db.prestamos.filter(p=>p.id!==id);save();renderAll()};
+function pagarCuota(id){const p=db.prestamos.find(p=>p.id===id);if(p&&p.cuotasPag<p.cuotasTot){p.cuotasPag++;save();renderAll()}}
+
+// ── UTILIDAD: calcular semanas hasta una fecha ──
+function semanasHasta(fechaStr){
+  if(!fechaStr) return 0;
+  const hoyD=new Date(); hoyD.setHours(0,0,0,0);
+  const fin=new Date(fechaStr); fin.setHours(0,0,0,0);
+  const diff=fin-hoyD;
+  return Math.max(1, Math.ceil(diff/(7*24*3600*1000)));
+}
+
+// ── PREVIEW EN TIEMPO REAL ──
+function previsualizarMeta(){
+  const obj=parseFloat(document.getElementById('mO').value)||0;
+  const actual=parseFloat(document.getElementById('mA').value)||0;
+  const fecha=document.getElementById('mF').value;
+  const prev=document.getElementById('metaPreview');
+  const cont=document.getElementById('metaPreviewContent');
+  if(!obj||!fecha){prev.style.display='none';return;}
+  const falta=Math.max(0,obj-actual);
+  const semanas=semanasHasta(fecha);
+  const meses=Math.ceil(semanas/4.33);
+  const porSemana=falta>0?parseFloat((falta/semanas).toFixed(2)):0;
+  const porMes=parseFloat((porSemana*4.33).toFixed(2));
+  const eta=new Date(fecha).toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'});
+  prev.style.display='block';
+  cont.innerHTML=`
+    <div style="display:flex;flex-wrap:wrap;gap:10px">
+      <div style="flex:1;min-width:120px"><div style="color:var(--texto2);font-size:.74rem">Falta juntar</div><div style="font-weight:800;font-size:1rem;color:#c03060">${fmt(falta)}</div></div>
+      <div style="flex:1;min-width:120px"><div style="color:var(--texto2);font-size:.74rem">Semanas disponibles</div><div style="font-weight:800;font-size:1rem;color:#5020a0">${semanas} sem. (~${meses} meses)</div></div>
+      <div style="flex:1;min-width:120px"><div style="color:var(--texto2);font-size:.74rem">💰 Ahorrar por semana</div><div style="font-weight:800;font-size:1.1rem;color:#2a8a50">${fmt(porSemana)}</div></div>
+      <div style="flex:1;min-width:120px"><div style="color:var(--texto2);font-size:.74rem">📅 Por mes</div><div style="font-weight:800;font-size:1rem;color:#2a8a50">${fmt(porMes)}</div></div>
+    </div>
+    <div style="margin-top:8px;font-size:.78rem;color:#5020a0">✅ Se creará un egreso semanal de <strong>${fmt(porSemana)}</strong> hasta el <strong>${eta}</strong></div>
+  `;
+}
+
+function addMeta(){
+  const n=document.getElementById('mN').value.trim();
+  const o=parseFloat(document.getElementById('mO').value);
+  const fecha=document.getElementById('mF').value;
+  if(!n||!o||o<=0){alert('Completá nombre y monto objetivo');return}
+  if(!fecha){alert('Indicá la fecha límite para calcular el ahorro semanal');return}
+  const actual=parseFloat(document.getElementById('mA').value)||0;
+  const falta=Math.max(0,o-actual);
+  const semanas=semanasHasta(fecha);
+  const porSemana=falta>0?parseFloat((falta/semanas).toFixed(2)):0;
+  const metaId=uid();
+  db.metas.push({
+    id:metaId,
+    nombre:n,
+    cat:document.getElementById('mC').value,
+    obj:o,
+    actual,
+    semanal:porSemana,   // calculado automáticamente
+    fecha,
+    emoji:document.getElementById('mE').value||'🌟'
+  });
+  // Crear egreso recurrente semanal vinculado a esta meta
+  if(porSemana>0){
+    db.egresos.push({
+      id:uid(),
+      desc:`🐣 Ahorro — ${n}`,
+      monto:porSemana,
+      cat:'ahorro',
+      fecha:hoy(),
+      freq:'semanal',
+      estado:'pendiente',
+      nota:`Meta: ${fmt(o)} al ${fecha}`,
+      metaId  // referencia a la meta
+    });
+  }
+  save();
+  ['mN','mO','mA','mF'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mE').value='';
+  document.getElementById('metaPreview').style.display='none';
+  renderAll();
+  alert(`✅ Meta creada. Ahorro semanal sugerido: ${fmt(porSemana)} · aparece como egreso pendiente.`);
+}
+
+function delMeta(id){
+  // Al eliminar la meta, eliminar también sus egresos de ahorro vinculados pendientes
+  const confirmado=confirm('¿Eliminar esta meta? También se quitarán los egresos de ahorro vinculados que estén pendientes.');
+  if(!confirmado)return;
+  db.egresos=db.egresos.filter(e=>!(e.metaId===id&&e.estado==='pendiente'));
+  db.metas=db.metas.filter(m=>m.id!==id);
+  save();renderAll();
+}
+
+function abonarMeta(id){
+  const v=parseFloat(prompt('¿Cuánto abonás a esta meta (AUD)?')||'0');
+  if(v>0){
+    const m=db.metas.find(m=>m.id===id);
+    if(m){
+      m.actual=Math.min(m.obj,m.actual+v);
+      // Recalcular el semanal con lo que falta
+      if(m.fecha&&m.actual<m.obj){
+        const sems=semanasHasta(m.fecha);
+        const nuevoSemanal=parseFloat(((m.obj-m.actual)/sems).toFixed(2));
+        const diff=nuevoSemanal-m.semanal;
+        m.semanal=nuevoSemanal;
+        // Actualizar el egreso vinculado pendiente
+        const egrVinc=db.egresos.find(e=>e.metaId===id&&e.estado==='pendiente');
+        if(egrVinc){egrVinc.monto=nuevoSemanal;egrVinc.nota=`Meta: ${fmt(m.obj)} al ${m.fecha} · Recalculado`;}
+      }
+      save();renderAll();
+    }
+  }
+}
+
+function addFuente(){
+  const n=document.getElementById('cN').value.trim(),m=parseFloat(document.getElementById('cM').value)||0;
+  if(!n)return;db.fuentes.push({id:uid(),nombre:n,tipo:document.getElementById('cT').value,monto:m});
+  save();document.getElementById('cN').value='';document.getElementById('cM').value='';renderAll();
+}
+const delFuente=id=>{db.fuentes=db.fuentes.filter(f=>f.id!==id);save();renderAll()};
+
+function addFijo(){
+  const d=document.getElementById('fD').value.trim(),m=parseFloat(document.getElementById('fM').value)||0;
+  if(!d||!m)return;db.fijos.push({id:uid(),desc:d,monto:m,dia:parseInt(document.getElementById('fDi').value)||1});
+  save();document.getElementById('fD').value='';document.getElementById('fM').value='';renderAll();
+}
+const delFijo=id=>{db.fijos=db.fijos.filter(f=>f.id!==id);save();renderAll()};
+
+function saveDiezmo(){
+  const nuevoPct=parseFloat(document.getElementById('cDi').value)||10;
+  db.config.iglesia=document.getElementById('cIg').value.trim();
+  // Si el porcentaje cambió, actualizar los egresos de diezmo pendientes vinculados a ingresos
+  if(nuevoPct!==db.config.diezmo){
+    db.egresos.forEach(e=>{
+      if(e.cat==='diezmo'&&e.ingId&&e.estado==='pendiente'){
+        const ing=db.ingresos.find(i=>i.id===e.ingId);
+        if(ing){e.monto=parseFloat((ing.monto*(nuevoPct/100)).toFixed(2));e.nota=`${nuevoPct}% de A$${ing.monto.toFixed(2)} (${ing.fuente})`;}
+      }
+    });
+  }
+  db.config.diezmo=nuevoPct;
+  save();renderAll();alert('✅ Guardado. Diezmos pendientes actualizados al '+nuevoPct+'%.');
+}
+
+// ══════════ RENDER ALL ══════════
+function renderAll(){
+  rHeader();rDash();rTabIng();rTabEgr();rCat();rPlan();rPrest();rMetas();rFlujo();rCfg();
+}
+
+// ── HEADER ──
+function rHeader(){
+  const{ti,fijosM,diezmoReg,saldoLibre,gap,necTotal}=calcTot();
+  document.getElementById('hI').textContent=fmt(ti);
+  document.getElementById('hE').textContent=fmt(fijosM);
+  document.getElementById('hS').textContent=fmt(saldoLibre);
+  document.getElementById('hS').style.color=saldoLibre>=0?'#2a8a50':'#c03060';
+  const nec=Math.max(0,gap);
+  document.getElementById('hN').textContent=nec>0?fmt(nec)+'/mes':'✅ Cubierto';
+  document.getElementById('hN').style.color=nec>0?'#a030c0':'#2a8a50';
+  document.getElementById('hd').textContent=new Date().toLocaleDateString('es-AR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+// ── NEED BOX ──
+function buildNeedBox(tid){
+  const{fuentesMes,fijosM,diezmoFuentes,ahorroMetas,necTotal,gap}=calcTot();
+  const el=document.getElementById(tid);if(!el)return;
+  const ok=gap<=0;
+  el.innerHTML=`<h3>📈 ¿Cuánto necesitás ingresar por mes?</h3>
+    <div class="nrow"><span>🏠 Compromisos fijos mensuales</span><span style="color:#c03060;font-weight:700">${fmt(fijosM)}</span></div>
+    <div class="nrow"><span>🙏 Diezmo estimado (${db.config.diezmo}%)</span><span style="color:#7030b0;font-weight:700">${fmt(diezmoFuentes)}</span></div>
+    <div class="nrow"><span>🐣 Ahorro en metas</span><span style="color:#e8a800;font-weight:700">${fmt(ahorroMetas)}</span></div>
+    <div class="nrow"><span>💡 <strong>TOTAL NECESARIO / mes</strong></span><span style="font-weight:800;font-size:1rem;color:#5020a0">${fmt(necTotal)}</span></div>
+    <div class="nrow"><span>💚 Fuentes configuradas (estim./mes)</span><span style="color:#2a8a50;font-weight:700">${fmt(fuentesMes)}</span></div>
+    <div class="nrow">
+      <span style="font-weight:700">${ok?'✅ Superávit estimado':'⚠️ Ingresos extra necesarios'}</span>
+      <span class="${ok?'ntok':'ntbad'}">${ok?fmt(Math.abs(gap))+' de margen':fmt(gap)+' más/mes'}</span>
+    </div>
+    ${!ok?`<div style="margin-top:9px;font-size:.8rem;color:#8a3060;background:var(--rosa2);padding:9px;border-radius:9px">
+      💡 Equivale a aproximadamente <strong>${fmt(gap/4.33)}/semana</strong> adicional.
+      Con 3 ingresos semanales + quincena necesitás al menos <strong>${fmt(necTotal/4.33)}/semana</strong> en promedio.
+    </div>`:`<div style="margin-top:9px;font-size:.8rem;color:#1a6030;background:var(--verde2);padding:9px;border-radius:9px">
+      🎉 Tus fuentes cubren todos los compromisos. Destiná el superávit a más ahorro o inversión.
+    </div>`}`;
+}
+
+// ── DASHBOARD ──
+function rDash(){
+  const{ti,fijosM,diezmoReg,saldoLibre,gap,necTotal}=calcTot();
+  const pend=db.egresos.filter(e=>e.estado==='pendiente');
+  const tpend=pend.reduce((s,e)=>s+e.monto,0);
+  const totAh=db.metas.reduce((s,m)=>s+m.actual,0);
+  const totObj=db.metas.reduce((s,m)=>s+m.obj,0);
+  document.getElementById('kpis').innerHTML=`
+    <div class="kpi v"><div class="klbl">💚 Ing.Registrados</div><div class="kval">${fmt(ti)}</div><div class="ksub">este mes</div></div>
+    <div class="kpi r"><div class="klbl">🌸 Compromisos Fijos</div><div class="kval">${fmt(fijosM)}</div><div class="ksub">mensual</div></div>
+    <div class="kpi l"><div class="klbl">🙏 Diezmo</div><div class="kval">${fmt(diezmoReg)}</div><div class="ksub">${db.config.diezmo}%</div></div>
+    <div class="kpi a"><div class="klbl">⚖️ Saldo Libre</div><div class="kval" style="color:${saldoLibre>=0?'#2a8a50':'#c03060'}">${fmt(saldoLibre)}</div><div class="ksub">ing.−egr.−diezmo</div></div>
+    <div class="kpi d"><div class="klbl">🐣 Total Ahorrado</div><div class="kval">${fmt(totAh)}</div><div class="ksub">de ${fmt(totObj)}</div></div>`;
+  buildNeedBox('nb1');
+  // Alertas
+  const aDiv=document.getElementById('ap');aDiv.innerHTML='';
+  if(!pend.length){aDiv.innerHTML='<div class="al ao">✅ Sin pagos pendientes registrados.</div>';}
+  else{
+    aDiv.innerHTML=`<div class="al aw">⚠️ <strong>${pend.length} pago(s) pendiente(s)</strong> por ${fmt(tpend)}</div>`;
+    pend.slice(0,5).forEach(e=>{aDiv.innerHTML+=`<div class="tli"><div class="tld de"></div><div class="tlt">${CE[e.cat]||'🎀'} ${e.desc}</div><div class="tla neg">${fmt(e.monto)}</div></div>`;});
+  }
+  // Distribución fijos
+  const dDiv=document.getElementById('dg');dDiv.innerHTML='';
+  const cols=['#f9a8c9','#c8a8e9','#7ac8f9','#7ec8a0','#f9d97a','#ffb97a','#c8f0da','#fbc8dc','#dbeeff','#ffe8d0'];
+  const tot=db.fijos.reduce((s,f)=>s+f.monto,0);let ci=0;
+  db.fijos.slice().sort((a,b)=>b.monto-a.monto).forEach(f=>{
+    const pct=tot>0?(f.monto/tot*100).toFixed(1):0;
+    dDiv.innerHTML+=`<div class="pw"><div class="pl"><span style="font-size:.76rem">${f.desc.slice(0,30)}</span><span>${pct}% · ${fmt(f.monto)}</span></div><div class="pb"><div class="pf" style="width:${pct}%;background:${cols[ci++%cols.length]}"></div></div></div>`;
+  });
+  if(!db.fijos.length)dDiv.innerHTML='<div style="color:var(--gris3);font-size:.8rem;text-align:center;padding:14px">Sin compromisos cargados</div>';
+  // Próximos
+  const pvDiv=document.getElementById('pv');pvDiv.innerHTML='';
+  const p2=db.egresos.filter(e=>e.estado==='pendiente').slice(0,5);
+  if(!p2.length){pvDiv.innerHTML='<div style="color:var(--gris3);font-size:.8rem;text-align:center;padding:12px">Sin pendientes ✅</div>';}
+  p2.forEach(e=>{pvDiv.innerHTML+=`<div class="tli"><div class="tld de"></div><div class="tlt"><strong>${e.desc}</strong><br><span style="font-size:.72rem;color:var(--texto2)">${e.fecha}</span></div><div class="tla neg">${fmt(e.monto)}</div></div>`;});
+  // Metas
+  const mrDiv=document.getElementById('mr');mrDiv.innerHTML='';
+  if(!db.metas.length){mrDiv.innerHTML='<div style="color:var(--gris3);font-size:.8rem;text-align:center;padding:12px">Sin metas 🌷</div>';}
+  db.metas.slice(0,4).forEach(m=>{const pct=m.obj>0?Math.min(100,m.actual/m.obj*100).toFixed(1):0;mrDiv.innerHTML+=`<div class="pw"><div class="pl"><span>${m.emoji} ${m.nombre}</span><span>${pct}%</span></div><div class="pb"><div class="pf" style="width:${pct}%;background:var(--amarillo)"></div></div></div>`;});
+  // Semana
+  const sw=document.getElementById('sr');
+  const iw=db.ingresos.filter(i=>inSem(i.fecha));
+  const ew=db.egresos.filter(e=>inSem(e.fecha));
+  const tiw=iw.reduce((s,i)=>s+i.monto,0);
+  const tew=ew.reduce((s,e)=>s+e.monto,0);
+  // El diezmo ya está incluido dentro de tew como egreso real, no se resta por separado
+  const diw=ew.filter(e=>e.cat==='diezmo').reduce((s,e)=>s+e.monto,0);
+  const sneto=tiw-tew;
+  const necSem=necTotal/4.33;
+  sw.innerHTML=`
+    <div class="tli"><div class="tld di"></div><div class="tlt">Ingresos semana</div><div class="tla pos">${fmt(tiw)}</div></div>
+    <div class="tli"><div class="tld de"></div><div class="tlt">Egresos registrados</div><div class="tla neg">${fmt(tew)}</div></div>
+    <div class="tli"><div class="tld dl"></div><div class="tlt">Diezmo</div><div class="tla neu">${fmt(diw)}</div></div>
+    <div class="tli" style="background:${sneto>=0?'var(--verde2)':'var(--rosa2)'}">
+      <div class="tld ${sneto>=0?'di':'dw'}"></div><div class="tlt"><strong>Saldo neto</strong></div><div class="tla ${sneto>=0?'pos':'neg'}">${fmt(sneto)}</div></div>
+    <div class="tli" style="background:var(--lila2)">
+      <div class="tld dl"></div><div class="tlt" style="font-size:.76rem">Necesario esta semana</div><div class="tla neu">${fmt(necSem)}</div></div>`;
+}
+
+// ── TABLA INGRESOS ──
+function rTabIng(){
+  const TLBL={fijo1:'Fijo Sem.1',fijo2:'Fijo Sem.2',fijo3:'Fijo Sem.3',quincena:'Quincena',variable:'Variable'};
+  const tb=document.getElementById('tI');
+  if(!db.ingresos.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--gris3);padding:20px">Sin registros 🌸</td></tr>';
+  }else{tb.innerHTML=db.ingresos.slice().sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(i=>`<tr>
+    <td>${i.fecha}</td><td><strong>${i.fuente}</strong></td>
+    <td><span class="tag ting">${TLBL[i.tipo]||i.tipo}</span></td>
+    <td><strong style="color:#2a8a50">${fmt(i.monto)}</strong></td>
+    <td style="color:var(--texto2);font-size:.78rem">${i.nota||''}</td>
+    <td><button class="btn bd" onclick="delIng('${i.id}')">✕</button></td></tr>`).join('');}
+  const{ti,necTotal}=calcTot();
+  const sem=db.ingresos.filter(i=>inSem(i.fecha)).reduce((s,i)=>s+i.monto,0);
+  const iRes=document.getElementById('iRes');
+  iRes.innerHTML=`<div class="g2 mb">
+    <div class="kpi v"><div class="klbl">Semana</div><div class="kval">${fmt(sem)}</div></div>
+    <div class="kpi c"><div class="klbl">Este mes</div><div class="kval">${fmt(ti)}</div></div>
+  </div>
+  <div class="kpi ${ti>=necTotal?'v':'r'} mb">
+    <div class="klbl">${ti>=necTotal?'✅ Meta cubierta':'⚠️ Falta para cubrir necesidades'}</div>
+    <div class="kval">${fmt(Math.abs(necTotal-ti))}</div>
+    <div class="ksub">Necesario mensual: ${fmt(necTotal)}</div>
+  </div>`;
+  db.fuentes.forEach(f=>{iRes.innerHTML+=`<div class="tli"><div class="tld di"></div><div class="tlt"><strong>${f.nombre}</strong> <span style="font-size:.72rem;color:var(--texto2)">${f.tipo}</span></div><div class="tla pos">${fmt(f.monto)}</div></div>`;});
+  if(!db.fuentes.length)iRes.innerHTML+='<div style="color:var(--gris3);font-size:.8rem;padding:8px">Configurá fuentes en ⚙️ Config</div>';
+}
+
+// ── TABLA EGRESOS ──
+function rTabEgr(){
+  const tb=document.getElementById('tE');
+  let lista=filtEgr==='todos'?db.egresos:db.egresos.filter(e=>e.estado===filtEgr);
+  lista=lista.slice().sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  if(!lista.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gris3);padding:20px">Sin registros 🌷</td></tr>';return;}
+  tb.innerHTML=lista.map(e=>`<tr>
+    <td>${e.fecha}</td>
+    <td><strong>${e.desc}</strong><br><span style="font-size:.72rem;color:var(--texto2)">${e.nota||''}</span></td>
+    <td>${CE[e.cat]||'🎀'} <span style="font-size:.76rem">${e.cat}</span></td>
+    <td><strong style="color:#c03060">${fmt(e.monto)}</strong></td>
+    <td><span style="font-size:.74rem;color:var(--texto2)">${e.freq}</span></td>
+    <td><span class="tag ${e.estado==='pagado'?'tpag':'tpen'}" style="cursor:pointer" onclick="togPag('${e.id}')">
+      ${e.estado==='pagado'?'✅ Pagado':'⏳ Pendiente'}</span></td>
+    <td><button class="btn bd" onclick="delEgr('${e.id}')">✕</button></td></tr>`).join('');
+}
+
+// ── CATEGORÍAS ──
+function rCat(){
+  const div=document.getElementById('catRes');
+  const cats={};db.egresos.forEach(e=>{if(!cats[e.cat])cats[e.cat]={t:0,p:0};cats[e.cat].t+=e.monto;if(e.estado==='pagado')cats[e.cat].p+=e.monto;});
+  const tot=Object.values(cats).reduce((s,c)=>s+c.t,0);
+  const cols=['#f9a8c9','#c8a8e9','#7ac8f9','#7ec8a0','#f9d97a','#ffb97a'];let ci=0;
+  div.innerHTML='';
+  Object.entries(cats).sort((a,b)=>b[1].t-a[1].t).forEach(([cat,v])=>{
+    const pct=tot>0?(v.t/tot*100).toFixed(1):0;
+    div.innerHTML+=`<div class="pw"><div class="pl"><span>${CE[cat]||'🎀'} ${cat}</span><span>${pct}% · ${fmt(v.t)}</span></div><div class="pb"><div class="pf" style="width:${pct}%;background:${cols[ci++%cols.length]}"></div></div></div>`;
+  });
+  if(!Object.keys(cats).length)div.innerHTML='<div style="color:var(--gris3);font-size:.8rem;text-align:center;padding:14px">Sin egresos 🌷</div>';
+}
+
+// ── PLANIFICACIÓN ──
+function rPlan(){
+  buildNeedBox('nb2');
+  const{necTotal}=calcTot();
+  const iSem=db.ingresos.filter(i=>inSem(i.fecha));
+  const tiS=iSem.reduce((s,i)=>s+i.monto,0);
+  // Diezmos de la semana (ya son egresos reales)
+  const diSem=db.egresos.filter(e=>e.cat==='diezmo'&&inSem(e.fecha)).reduce((s,e)=>s+e.monto,0);
+  const ePend=db.egresos.filter(e=>e.estado==='pendiente');
+  const teP=ePend.reduce((s,e)=>s+e.monto,0);
+  // Saldo = ingresos - todos los egresos pendientes (diezmo ya está incluido)
+  const sS=tiS-teP;
+  const nS=necTotal/4.33;
+  // Panel ingresos
+  const piDiv=document.getElementById('pI');piDiv.innerHTML='';
+  if(!iSem.length){
+    piDiv.innerHTML='<div style="color:var(--gris3);font-size:.8rem;text-align:center;padding:11px">Sin ingresos esta semana</div>';
+  } else {
+    iSem.forEach(i=>{
+      const diezmoEgr=db.egresos.find(e=>e.ingId===i.id);
+      piDiv.innerHTML+=`<div class="tli"><div class="tld di"></div>
+        <div class="tlt"><strong>${i.fuente}</strong> <span style="font-size:.72rem">${i.fecha}</span>
+        ${diezmoEgr?`<br><span style="font-size:.71rem;color:#7030b0">→ 🙏 Diezmo: ${fmt(diezmoEgr.monto)} (${diezmoEgr.estado==='pagado'?'✅ pagado':'⏳ pendiente'})</span>`:''}
+        </div><div class="tla pos">${fmt(i.monto)}</div></div>`;
+    });
+  }
+  document.getElementById('pTI').textContent=fmt(tiS);
+  // Panel egresos pendientes
+  const peDiv=document.getElementById('pE');peDiv.innerHTML='';
+  if(!ePend.length){
+    peDiv.innerHTML='<div style="color:var(--gris3);font-size:.8rem;text-align:center;padding:11px">Sin pendientes ✅</div>';
+  } else {
+    let ac=tiS;
+    ePend.forEach(e=>{
+      ac-=e.monto;const ok=ac>=0;const esDiezmo=e.cat==='diezmo';
+      peDiv.innerHTML+=`<div class="tli" ${esDiezmo?'style="background:var(--lila2);border-color:var(--lila)"':''}>
+        <div class="tld ${esDiezmo?'dl':ok?'di':'dw'}"></div>
+        <div class="tlt">${CE[e.cat]||'🎀'} <strong>${e.desc}</strong></div>
+        <div class="tla ${ok?'pos':'neg'}">${fmt(e.monto)} ${ok?'✅':'⚠️'}</div></div>`;
+    });
+  }
+  document.getElementById('pTE').textContent=fmt(teP);
+  document.getElementById('pB').innerHTML=`
+    <div class="kpi v"><div class="klbl">💚 Ing.Semana</div><div class="kval">${fmt(tiS)}</div></div>
+    <div class="kpi r"><div class="klbl">🌸 Egresos pend.</div><div class="kval">${fmt(teP)}</div></div>
+    <div class="kpi l"><div class="klbl">🙏 Diezmo incl.</div><div class="kval">${fmt(diSem)}</div><div class="ksub">dentro de egresos</div></div>
+    <div class="kpi ${sS>=0?'a':'r'}"><div class="klbl">⚖️ Saldo Sem.</div><div class="kval" style="color:${sS>=0?'#2a8a50':'#c03060'}">${fmt(sS)}</div></div>
+    <div class="kpi c"><div class="klbl">📅 Nec.Semanal</div><div class="kval">${fmt(nS)}</div></div>`;
+  document.getElementById('pAF').innerHTML=
+    sS<0?`<div class="al ab">🚨 Déficit de ${fmt(Math.abs(sS))}. Revisá ingresos o diferí pagos.</div>`:
+    sS<nS*0.1?`<div class="al aw">⚠️ Saldo muy ajustado (${fmt(sS)}). Cuidado con gastos variables.</div>`:
+    `<div class="al ao">✅ ¡Bien! Cubrís todos los compromisos (incl. diezmo) con ${fmt(sS)} libre.</div>`;
+  const pfDiv=document.getElementById('pFijos');pfDiv.innerHTML='';
+  pfDiv.innerHTML+=`<div class="escbadge">🏫 <strong>Escuela Samu</strong> — A$3,080 cada 2.5 meses · Prorrateado A$1,232/mes · Separar <strong>A$308/semana</strong></div>
+  <div class="escbadge" style="background:linear-gradient(135deg,var(--verde2),var(--amar2));border-color:var(--verde)">🏠 <strong>Renta</strong> — A$800/semana · Equiv. mensual A$3,467</div>`;
+  let totF=0;
+  pfDiv.innerHTML+='<div class="tw"><table><thead><tr><th>Compromiso</th><th>Mensual</th><th>/semana equiv.</th><th></th></tr></thead><tbody>';
+  db.fijos.forEach(f=>{totF+=f.monto;pfDiv.innerHTML+=`<tr><td><strong>${f.desc}</strong></td><td style="color:#c03060;font-weight:700">${fmt(f.monto)}</td><td style="color:var(--texto2)">${fmt(f.monto/4.33)}</td><td><button class="btn bd" onclick="delFijo('${f.id}')">✕</button></td></tr>`;});
+  pfDiv.innerHTML+=`<tr style="background:var(--rosa2)"><td><strong>TOTAL</strong></td><td style="color:#c03060;font-weight:800">${fmt(totF)}</td><td style="color:#c03060;font-weight:700">${fmt(totF/4.33)}/sem</td><td></td></tr></tbody></table></div>`;
+}
+function calcularPlanificacion(){rPlan()}
+
+// ── PRÉSTAMOS ──
+function rPrest(){
+  const lp=document.getElementById('lP'),rd=document.getElementById('rD');
+  if(!db.prestamos.length){lp.innerHTML='<div class="al ao">✅ Sin préstamos.</div>';rd.innerHTML='<div class="al ao">✅ Sin deudas 🎉</div>';return;}
+  let td=0,tc=0;lp.innerHTML='';
+  const tipos={familiar:'👨‍👩‍👧',auto:'🚗',personal:'👤',hipotecario:'🏠',tarjeta:'💳',otro:'📦'};
+  db.prestamos.forEach(p=>{
+    const rest=p.cuotasTot-p.cuotasPag,dr=rest*p.cuota;td+=dr;tc+=p.cuota;
+    const pct=p.cuotasTot>0?(p.cuotasPag/p.cuotasTot*100).toFixed(1):0;
+    lp.innerHTML+=`<div class="card mb"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:9px">
+      <div><div style="font-size:.98rem;font-weight:700">${tipos[p.tipo]||'📦'} ${p.nombre}</div>
+      <div style="font-size:.78rem;color:var(--texto2)">Cuota: ${fmt(p.cuota)}/mes · Día ${p.dia} · ${p.cuotasPag}/${p.cuotasTot} pagas · Restan ${rest}</div>
+      ${p.nota?`<div style="font-size:.72rem;color:var(--gris3)">${p.nota}</div>`:''}</div>
+      <div style="text-align:right"><div style="font-size:1.05rem;font-weight:800;color:#c03060">${fmt(dr)}</div><div style="font-size:.76rem;color:var(--texto2)">pendiente</div></div></div>
+      <div style="margin:9px 0"><div class="pl"><span>Progreso</span><span>${pct}%</span></div><div class="pb"><div class="pf" style="width:${pct}%;background:var(--verde)"></div></div></div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn bs bsm" onclick="pagarCuota('${p.id}')">✅ Pagar cuota</button>
+        <button class="btn bd" onclick="delPrest('${p.id}')">✕ Eliminar</button>
+      </div></div>`;
+  });
+  rd.innerHTML=`<div class="kpi r mb"><div class="klbl">💸 Deuda Total</div><div class="kval">${fmt(td)}</div><div class="ksub">${db.prestamos.length} préstamo(s)</div></div>
+  <div class="kpi d"><div class="klbl">📅 Cuotas/mes</div><div class="kval">${fmt(tc)}</div><div class="ksub">${fmt(tc/4.33)}/semana equiv.</div></div>`;
+}
+
+// ── METAS ──
+function rMetas(){
+  const lm=document.getElementById('lM'),ra=document.getElementById('raDiv');
+  if(!db.metas.length){lm.innerHTML='';ra.innerHTML='<div class="al ai">ℹ️ Creá tu primera meta de ahorro.</div>';return;}
+  const totA=db.metas.reduce((s,m)=>s+m.actual,0),totO=db.metas.reduce((s,m)=>s+m.obj,0),totS=db.metas.reduce((s,m)=>s+m.semanal,0);
+  const pg=totO>0?(totA/totO*100).toFixed(1):0;
+  ra.innerHTML=`<div class="pw mb"><div class="pl"><span>Progreso global</span><span>${pg}%</span></div>
+  <div class="pb" style="height:12px"><div class="pf" style="width:${pg}%;background:linear-gradient(90deg,var(--amarillo),var(--verde))"></div></div></div>
+  <div class="g2">
+    <div class="kpi a"><div class="klbl">🐣 Ahorrado</div><div class="kval">${fmt(totA)}</div><div class="ksub">de ${fmt(totO)}</div></div>
+    <div class="kpi v"><div class="klbl">📅 /semana</div><div class="kval">${fmt(totS)}</div><div class="ksub">${fmt(totS*4.33)}/mes</div></div>
+  </div>`;
+  const catC={vacaciones:'var(--cielo2)',auto:'var(--duraz2)',casa:'var(--verde2)',electronico:'var(--lila2)',educacion:'var(--amar2)',emergencia:'var(--rosa2)',escuela:'var(--lila2)',otro:'var(--gris1)'};
+  lm.innerHTML='<div class="g3">';
+  db.metas.forEach(m=>{
+    const pct=m.obj>0?Math.min(100,m.actual/m.obj*100):0;
+    const ps=pct.toFixed(1),falta=Math.max(0,m.obj-m.actual);
+    const semsR=m.fecha?semanasHasta(m.fecha):null;
+    const mesesR=semsR?Math.ceil(semsR/4.33):null;
+    const semanalR=m.semanal; // calculado automáticamente al crear
+    const fechaLinda=m.fecha?new Date(m.fecha).toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'}):null;
+    const esCubierto=pct>=100;
+    const egrVinc=db.egresos.find(e=>e.metaId===m.id&&e.estado==='pendiente');
+    lm.innerHTML+=`<div class="card" style="background:${catC[m.cat]||'var(--gris1)'}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="font-size:2rem">${m.emoji}</div>
+        ${esCubierto?'<span style="background:#2a8a50;color:#fff;border-radius:20px;padding:3px 10px;font-size:.72rem;font-weight:700">✅ LOGRADA</span>':''}
+      </div>
+      <div style="font-size:.98rem;font-weight:700;margin:5px 0 3px">${m.nombre}</div>
+      <div style="font-size:.78rem;color:var(--texto2);margin-bottom:9px">
+        Objetivo: <strong>${fmt(m.obj)}</strong>${fechaLinda?` · Para el ${fechaLinda}`:''}
+      </div>
+      <div class="pw"><div class="pl"><span>Ahorrado: ${fmt(m.actual)}</span><span>${ps}%</span></div>
+        <div class="pb"><div class="pf" style="width:${ps}%;background:${esCubierto?'var(--verde)':'var(--amarillo)'}"></div></div>
+      </div>
+      <div style="margin:10px 0;background:rgba(255,255,255,.6);border-radius:9px;padding:9px;font-size:.8rem">
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <div><div style="color:var(--texto2);font-size:.7rem">Falta</div><div style="font-weight:800;color:#c03060">${fmt(falta)}</div></div>
+          ${semsR?`<div><div style="color:var(--texto2);font-size:.7rem">Semanas</div><div style="font-weight:700">${semsR} sem.</div></div>`:''}
+          <div><div style="color:var(--texto2);font-size:.7rem">💰 /semana</div><div style="font-weight:800;color:#2a8a50;font-size:.95rem">${fmt(semanalR)}</div></div>
+          <div><div style="color:var(--texto2);font-size:.7rem">📅 /mes</div><div style="font-weight:700;color:#2a8a50">${fmt(semanalR*4.33)}</div></div>
+        </div>
+        ${egrVinc?`<div style="margin-top:6px;color:#5020a0;font-size:.72rem">🔗 Egreso semanal activo: ${fmt(egrVinc.monto)} · ⏳ pendiente</div>`:''}
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn bw bsm" onclick="abonarMeta('${m.id}')">+ Abonar</button>
+        <button class="btn bd" onclick="delMeta('${m.id}')">✕ Eliminar</button>
+      </div></div>`;
+  });
+  lm.innerHTML+='</div>';
+}
+
+// ── FLUJO ──
+let mFlujo='semanal';
+function setFlujo(m){mFlujo=m;document.getElementById('bFS').style.background=m==='semanal'?'var(--lila)':'var(--gris2)';document.getElementById('bFS').style.color=m==='semanal'?'#fff':'var(--texto)';document.getElementById('bFM').style.background=m==='mensual'?'var(--lila)':'var(--gris2)';document.getElementById('bFM').style.color=m==='mensual'?'#fff':'var(--texto)';rFlujo();}
+function rFlujo(){
+  const ings=mFlujo==='semanal'?db.ingresos.filter(i=>inSem(i.fecha)):db.ingresos.filter(i=>inMes(i.fecha));
+  const egrs=mFlujo==='semanal'?db.egresos.filter(e=>inSem(e.fecha)):db.egresos.filter(e=>inMes(e.fecha));
+  const ti=ings.reduce((s,i)=>s+i.monto,0),te=egrs.reduce((s,e)=>s+e.monto,0);
+  // El diezmo ya está dentro de te como egreso real
+  const di=egrs.filter(e=>e.cat==='diezmo').reduce((s,e)=>s+e.monto,0);
+  const neto=ti-te;
+  const{necTotal}=calcTot();const necP=mFlujo==='semanal'?necTotal/4.33:necTotal;const gap=necP-ti;
+  buildNeedBox('nb3');
+  document.getElementById('fK').innerHTML=`
+    <div class="kpi v"><div class="klbl">Entradas</div><div class="kval">${fmt(ti)}</div></div>
+    <div class="kpi r"><div class="klbl">Salidas reg.</div><div class="kval">${fmt(te)}</div></div>
+    <div class="kpi l"><div class="klbl">Diezmo</div><div class="kval">${fmt(di)}</div></div>
+    <div class="kpi ${neto>=0?'a':'r'}"><div class="klbl">Saldo Neto</div><div class="kval" style="color:${neto>=0?'#2a8a50':'#c03060'}">${fmt(neto)}</div></div>
+    <div class="kpi ${gap<=0?'v':'d'}"><div class="klbl">${gap<=0?'✅ Superávit':'⚠️ Falta'}</div><div class="kval">${fmt(Math.abs(gap))}</div><div class="ksub">vs necesario</div></div>`;
+  // Timeline
+  const tl=document.getElementById('fTL');
+  const todos=[...ings.map(i=>({...i,tp:'ing'})),...egrs.map(e=>({...e,tp:'egr'}))].sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  tl.innerHTML='';
+  if(!todos.length)tl.innerHTML='<div style="color:var(--gris3);font-size:.8rem;text-align:center;padding:16px">Sin movimientos 🌸</div>';
+  else todos.forEach(t=>{const ei=t.tp==='ing';tl.innerHTML+=`<div class="tli"><div class="tld ${ei?'di':'de'}"></div><div class="tlt"><strong>${ei?t.fuente:t.desc}</strong><br><span style="font-size:.72rem;color:var(--texto2)">${t.fecha}</span></div><div class="tla ${ei?'pos':'neg'}">${ei?'+':'−'}${fmt(t.monto)}</div></div>`;});
+  // Cats
+  const catDiv=document.getElementById('fCat');const cats={};
+  egrs.forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.monto;});
+  const totC=Object.values(cats).reduce((s,v)=>s+v,0);
+  const cols=['#f9a8c9','#c8a8e9','#7ac8f9','#7ec8a0','#f9d97a','#ffb97a'];let ci=0;catDiv.innerHTML='';
+  Object.entries(cats).sort((a,b)=>b[1]-a[1]).forEach(([c,v])=>{const pct=totC>0?(v/totC*100).toFixed(1):0;catDiv.innerHTML+=`<div class="pw"><div class="pl"><span>${CE[c]||'🎀'} ${c}</span><span>${pct}% · ${fmt(v)}</span></div><div class="pb"><div class="pf" style="width:${pct}%;background:${cols[ci++%cols.length]}"></div></div></div>`;});
+  if(!Object.keys(cats).length)catDiv.innerHTML='<div style="color:var(--gris3);font-size:.8rem;text-align:center;padding:14px">Sin egresos registrados 🌷</div>';
+  // Recomendaciones
+  const recDiv=document.getElementById('fRec');recDiv.innerHTML='';const recos=[];
+  if(neto<0)recos.push({d:'dw',t:`🚨 Déficit de ${fmt(Math.abs(neto))}. Egresos superan ingresos del período.`});
+  if(gap>0)recos.push({d:'dw',t:`⚠️ Necesitás ${fmt(gap)} más ${mFlujo==='semanal'?'esta semana':'este mes'} para cubrir todos los compromisos.`});
+  if(di>0)recos.push({d:'dl',t:`🙏 Diezmo a apartar: ${fmt(di)} (${db.config.diezmo}%)${db.config.iglesia?' → '+db.config.iglesia:''}`});
+  // Recomendaciones dinámicas basadas en fijos configurados
+  const fijoEscuela=db.fijos.find(f=>f.desc&&f.desc.toLowerCase().includes('samu')&&f.desc.toLowerCase().includes('escuela'));
+  if(fijoEscuela){const porSem=fijoEscuela.monto/4.33;recos.push({d:'dm',t:`🏫 ${fijoEscuela.desc}: Separar ${fmt(porSem)}/semana (${fmt(fijoEscuela.monto)}/mes).`});}
+  const fijoRenta=db.fijos.find(f=>f.desc&&f.desc.toLowerCase().includes('renta'));
+  if(fijoRenta){const porSem=fijoRenta.monto/4.33;recos.push({d:'dm',t:`🏠 ${fijoRenta.desc}: ${fmt(porSem)}/semana. No olvidar separarlo al cobrar.`});}
+  if(db.metas.length>0){const ts=db.metas.reduce((s,m)=>s+m.semanal,0);recos.push({d:'dm',t:`🐣 Ahorro semanal comprometido: ${fmt(ts)} para ${db.metas.length} meta(s).`});}
+  if(neto>0&&gap<=0)recos.push({d:'di',t:`✅ ¡Excelente! Cubrís necesidades con ${fmt(Math.abs(gap))} de superávit. Destinalo a ahorro.`});
+  if(!recos.length)recos.push({d:'di',t:'✅ Todo en orden. Seguí registrando.'});
+  recos.forEach(r=>{recDiv.innerHTML+=`<div class="tli"><div class="tld ${r.d}"></div><div class="tlt" style="font-size:.82rem">${r.t}</div></div>`;});
+}
+
+// ── CONFIG ──
+function rCfg(){
+  const fl=document.getElementById('cfgFL');fl.innerHTML='';
+  db.fuentes.forEach(f=>{fl.innerHTML+=`<div class="tli" style="margin-bottom:4px"><div class="tld di"></div><div class="tlt"><strong>${f.nombre}</strong> <span style="font-size:.72rem;color:var(--texto2)">${f.tipo}</span></div><div class="tla pos">${fmt(f.monto)}</div><button class="btn bd" onclick="delFuente('${f.id}')">✕</button></div>`;});
+  if(!db.fuentes.length)fl.innerHTML='<div style="color:var(--gris3);font-size:.8rem;text-align:center;padding:9px">Sin fuentes configuradas</div>';
+  else{const tm=calcFuentesMes();fl.innerHTML+=`<div style="text-align:right;font-size:.8rem;color:#2a8a50;font-weight:700;padding:5px">Total estimado/mes: ${fmt(tm)}</div>`;}
+  const fi=document.getElementById('cfgFI');fi.innerHTML='';
+  db.fijos.forEach(f=>{fi.innerHTML+=`<div class="tli" style="margin-bottom:4px"><div class="tld de"></div><div class="tlt"><strong>${f.desc}</strong> <span style="font-size:.72rem;color:var(--texto2)">día ${f.dia}</span></div><div class="tla neg">${fmt(f.monto)}</div><button class="btn bd" onclick="delFijo('${f.id}')">✕</button></div>`;});
+  if(!db.fijos.length)fi.innerHTML='<div style="color:var(--gris3);font-size:.8rem;text-align:center;padding:9px">Sin fijos configurados</div>';
+  else{const tot=db.fijos.reduce((s,f)=>s+f.monto,0);fi.innerHTML+=`<div style="text-align:right;font-size:.8rem;color:#c03060;font-weight:700;padding:5px">Total mensual: ${fmt(tot)}</div>`;}
+  document.getElementById('cDi').value=db.config.diezmo;
+  document.getElementById('cIg').value=db.config.iglesia||'';
+}
+
+// ══════════ EXPORT/IMPORT/RESET ══════════
+function expDatos(){const b=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='finanzas_familia_'+hoy()+'.json';a.click();}
+function impDatos(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(d.ingresos!==undefined){db=d;save();renderAll();alert('✅ Datos importados.');}else alert('❌ Formato incorrecto.');}catch{alert('❌ Error al leer.')}};r.readAsText(f);}
+function cfReset(){document.getElementById('mReset').classList.add('open')}
+function closeModal(){document.getElementById('mReset').classList.remove('open')}
+function doReset(){localStorage.removeItem(KEY);db=DFT();initData();closeModal();renderAll();}
+
+// ══════════ INIT ══════════
+load(); // caché inmediata de localStorage
+document.querySelectorAll('input[type="date"]').forEach(inp=>{if(!inp.value)inp.value=hoy()});
+
+// El módulo ES (Firebase) siempre corre después de este script clásico.
+// Dejamos _appStart en window para que el módulo la llame cuando termine de cargar.
+window._appStart = function(){
+  initFirebaseSync();
+};
+</script>
+</body>
+</html>
