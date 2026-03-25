@@ -318,7 +318,12 @@ tbody td{padding:9px 13px}
 
 <!-- EGRESOS -->
 <div id="s-egr" class="sec">
-  <div class="sh"><h2>🌸 Egresos</h2></div>
+  <div class="sh">
+    <h2>🌸 Egresos</h2>
+    <div style="font-size:.76rem;color:var(--texto2);background:var(--amar2);border-radius:8px;padding:7px 11px;border:1px solid var(--amarillo)">
+      ⚡ Egresos = compromisos fijos mensuales. Marcalos ✅ en 💰 Balance cuando los pagás.
+    </div>
+  </div>
   <div class="g2 mb">
     <div class="card">
       <div class="ctitle">➕ Registrar Egreso</div>
@@ -561,6 +566,9 @@ tbody td{padding:9px 13px}
   <div class="g2 mb">
     <div class="card">
       <div class="ctitle">➕ Nuevo gasto</div>
+      <div style="font-size:.78rem;color:var(--texto2);background:var(--cielo2);border-radius:8px;padding:8px 11px;margin-bottom:11px;border:1px solid var(--cielo)">
+        💡 Usá esta sección para cargar compras del día a día: supermercado, nafta, farmacia, etc. Los pagos de compromisos fijos (renta, préstamo) se marcan en 💰 Balance.
+      </div>
       <div class="fr">
         <div class="fg"><label>Descripción</label><input type="text" id="gdDesc" placeholder="Ej: Woolworths, nafta..."></div>
         <div class="fg" style="max-width:180px"><label>Categoría</label>
@@ -734,9 +742,11 @@ function calcTot(){
   const diezmoFuentes=fuentesMes*(db.config.diezmo/100);
   const ahorroMetas=db.metas.reduce((s,m)=>s+m.semanal,0)*4.33;
   const necTotal=fijosM+diezmoFuentes+ahorroMetas;
-  // Egresos del mes actual solamente (no acumular de meses anteriores)
-  const egrsAll=db.egresos.filter(e=>inMes(e.fecha)).reduce((s,e)=>s+e.monto,0);
-  // Saldo libre = ingresos del mes - egresos del mes
+  // Gasto real = gastos cargados en ✏️ Gastos + egresos ya PAGADOS este mes
+  const gastosRealesMes=(db.gastosReales||[]).filter(g=>inMes(g.fecha)).reduce((s,g)=>s+g.monto,0);
+  const egresosPagadosMes=db.egresos.filter(e=>inMes(e.fecha)&&e.estado==='pagado').reduce((s,e)=>s+e.monto,0);
+  const egrsAll=gastosRealesMes+egresosPagadosMes;
+  // Saldo libre = ingresos del mes - lo que YA se gastó/pagó (no incluye pendientes)
   const saldoLibre=ti-egrsAll;
   const gap=necTotal-fuentesMes;
   return{ti,fuentesMes,fijosM,diezmoReg,diezmoFuentes,ahorroMetas,necTotal,egrsAll,saldoLibre,gap};
@@ -1189,16 +1199,22 @@ function rBalance(){
   const totalPend=pendientes.reduce((s,e)=>s+e.monto,0);
   const totalPag=pagados.reduce((s,e)=>s+e.monto,0);
   const totalMes=egrMes.reduce((s,e)=>s+e.monto,0);
-  const disponible=tiM-totalPag;
+  const gastosRealesTot=(db.gastosReales||[]).filter(g=>g.fecha&&g.fecha.startsWith(mesActual)).reduce((s,g)=>s+g.monto,0);
+  const disponible=tiM-(totalPag+gastosRealesTot);
   const proyectado=tiM-totalMes;
 
   // KPIs
   const totalPlanificado=db.fijos.reduce((s,f)=>s+f.monto,0);
+  const gastosRealesMesB=(db.gastosReales||[]).filter(g=>g.fecha&&g.fecha.startsWith(mesActual)).reduce((s,g)=>s+g.monto,0);
+  const egresosPagadosMesB=pagados.reduce((s,e)=>s+e.monto,0);
+  const gastoRealTotal=gastosRealesMesB+egresosPagadosMesB;
+  const saldoReal=tiM-gastoRealTotal;
+  const porPagarAun=totalPend; // egresos pendientes = compromisos que faltan pagar
   document.getElementById('balKpis').innerHTML=`
-    <div class="kpi v"><div class="klbl">💚 Ingresos mes</div><div class="kval">${fmt(tiM)}</div></div>
-    <div class="kpi l"><div class="klbl">📋 Plan mensual</div><div class="kval">${fmt(totalPlanificado)}</div><div class="ksub">presupuestado</div></div>
-    <div class="kpi ${disponible>=0?'a':'r'}"><div class="klbl">💵 Disponible real</div><div class="kval" style="color:${disponible>=0?'#2a8a50':'#c03060'}">${fmt(disponible)}</div><div class="ksub">ingresos − pagado</div></div>
-    <div class="kpi ${proyectado>=0?'c':'r'}"><div class="klbl">${proyectado>=0?'✅ Superávit proy.':'⚠️ Déficit proy.'}</div><div class="kval" style="color:${proyectado>=0?'#1060a0':'#c03060'}">${fmt(Math.abs(proyectado))}</div><div class="ksub">si se paga todo</div></div>`;
+    <div class="kpi v"><div class="klbl">💚 Ingresos cobrados</div><div class="kval">${fmt(tiM)}</div><div class="ksub">este mes</div></div>
+    <div class="kpi l"><div class="klbl">📋 Compromisos mes</div><div class="kval">${fmt(totalPlanificado)}</div><div class="ksub">presupuestado</div></div>
+    <div class="kpi ${saldoReal>=0?'a':'r'}"><div class="klbl">💵 Saldo disponible</div><div class="kval" style="color:${saldoReal>=0?'#2a8a50':'#c03060'}">${fmt(saldoReal)}</div><div class="ksub">ingresos − gastado real</div></div>
+    <div class="kpi ${(saldoReal-porPagarAun)>=0?'c':'r'}"><div class="klbl">${(saldoReal-porPagarAun)>=0?'✅ Sobrará':'⚠️ Faltará'}</div><div class="kval" style="color:${(saldoReal-porPagarAun)>=0?'#1060a0':'#c03060'}">${fmt(Math.abs(saldoReal-porPagarAun))}</div><div class="ksub">si se paga todo pendiente</div></div>`;
 
   // Barra progreso
   const pct=totalMes>0?Math.min(100,(totalPag/totalMes*100)).toFixed(0):0;
@@ -1259,18 +1275,10 @@ function rBalance(){
   if(!db.gastosReales) db.gastosReales=[];
   const gastosM=db.gastosReales.filter(g=>g.fecha&&g.fecha.startsWith(mesActual));
   const presupCats=calcPresupuestoCats();
-  // Real = gastosReales cargados en ✏️ Gastos + egresos ya pagados del mes
   const realPorCat={};
   gastosM.forEach(g=>{realPorCat[g.cat]=(realPorCat[g.cat]||0)+g.monto;});
-  // Sumar egresos pagados al real (renta pagada, préstamo pagado, etc.)
-  // Pero solo si NO hay un gasto real de esa categoría (para no doble contar)
-  // Los egresos pagados son la confirmación real de esos compromisos
-  pagados.filter(e=>!e.esExtra).forEach(e=>{
-    // Si ya hay gastos reales de esa cat, no sumar el egreso (el gasto real es más granular)
-    if(!gastosM.some(g=>g.cat===e.cat)){
-      realPorCat[e.cat]=(realPorCat[e.cat]||0)+e.monto;
-    }
-  });
+  // También sumar egresos pagados como real
+  pagados.forEach(e=>{realPorCat[e.cat]=(realPorCat[e.cat]||0)+e.monto;});
 
   const todasCats=new Set([...Object.keys(presupCats),...Object.keys(realPorCat)]);
   const totalPresup=Array.from(todasCats).reduce((s,c)=>s+(presupCats[c]||0),0);
@@ -1326,8 +1334,8 @@ function addGastoReal(){
   });
   save();
   ['gdDesc','gdMonto','gdNota'].forEach(id=>document.getElementById(id).value='');
+  // Dejar fecha para facilitar carga rápida de múltiples gastos
   renderAll();
-  alert('✅ Gasto registrado.');
 }
 
 const delGastoReal=id=>{db.gastosReales=db.gastosReales.filter(g=>g.id!==id);save();renderAll();};
@@ -1368,11 +1376,9 @@ function updateGastoReal(id){
 function calcPresupuestoCats(){
   const p={};
   const mes=new Date().toISOString().slice(0,7);
-  // Fuente de presupuesto: egresos recurrentes del mes, usando montoBase si existe
-  // (montoBase = monto sin deuda acumulada de meses anteriores)
+  // Fuente de presupuesto: los egresos recurrentes del mes (planificados)
   db.egresos.filter(e=>e.fecha&&e.fecha.startsWith(mes)&&!e.esExtra).forEach(e=>{
-    const montoPresup = e.montoBase || e.monto; // usar monto base, no inflado por deuda
-    p[e.cat]=(p[e.cat]||0)+montoPresup;
+    p[e.cat]=(p[e.cat]||0)+e.monto;
   });
   // Si no hay egresos del mes cargados, usar fijos como fallback
   if(Object.keys(p).length===0){
@@ -1408,15 +1414,9 @@ function rGasto(){
   // Real = gastosReales del mes + egresos pagados del mes (ambos representan gasto real)
   const realPorCat={};
   gastosM.forEach(g=>{realPorCat[g.cat]=(realPorCat[g.cat]||0)+g.monto;});
-  // Sumar egresos pagados solo si no hay gastosReales de esa categoría
-  // (evitar doble conteo: si cargaste compras de super en Gastos, no sumar el egreso de super)
-  const catConGastosReales=new Set(gastosM.map(g=>g.cat));
+  // Sumar también egresos ya pagados (renta pagada, préstamo pagado, etc.)
   db.egresos.filter(e=>e.fecha&&e.fecha.startsWith(mes)&&e.estado==='pagado'&&!e.esExtra)
-    .forEach(e=>{
-      if(!catConGastosReales.has(e.cat)){
-        realPorCat[e.cat]=(realPorCat[e.cat]||0)+e.monto;
-      }
-    });
+    .forEach(e=>{realPorCat[e.cat]=(realPorCat[e.cat]||0)+e.monto;});
 
   // Mostrar saldos disponibles
   const sDiv=document.getElementById('gdSaldos');
@@ -1428,13 +1428,17 @@ function rGasto(){
     const saldo=presup-real;
     const pct=presup>0?Math.min(100,(real/presup*100)).toFixed(0):100;
     const color=saldo<0?'#c03060':saldo<presup*0.15?'#e8a800':'#2a8a50';
+    const presupSem=parseFloat((presup/4.33).toFixed(2));
     sdHtml+=`<div class="pw">
       <div class="pl">
-        <span>${CE[cat]||'🎀'} ${cat}</span>
-        <span style="color:${color};font-weight:700">${fmt(saldo)} libre</span>
+        <span>${CE[cat]||'🎀'} <strong>${cat}</strong></span>
+        <span style="color:${color};font-weight:800">${fmt(saldo)} libre</span>
       </div>
       <div class="pb"><div class="pf" style="width:${pct}%;background:${saldo<0?'#e05050':saldo<presup*0.15?'var(--amarillo)':'var(--verde)'}"></div></div>
-      <div style="font-size:.7rem;color:var(--texto2);margin-top:2px">Gastado ${fmt(real)} de ${fmt(presup)} · ${pct}%</div>
+      <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--texto2);margin-top:3px">
+        <span>Gastado ${fmt(real)} de ${fmt(presup)}/mes</span>
+        <span>≈ ${fmt(presupSem)}/sem · ${pct}%</span>
+      </div>
     </div>`;
   });
   if(!sdHtml) sdHtml='<div style="color:var(--gris3);font-size:.82rem;text-align:center;padding:14px">Configurá fijos en ⚙️ Config para ver presupuestos</div>';
@@ -1505,7 +1509,7 @@ function rDash(){
   document.getElementById('kpis').innerHTML=`
     <div class="kpi v"><div class="klbl">💚 Ing.Registrados</div><div class="kval">${fmt(ti)}</div><div class="ksub">este mes</div></div>
     <div class="kpi r"><div class="klbl">🌸 Compromisos Fijos</div><div class="kval">${fmt(fijosM)}</div><div class="ksub">mensual</div></div>
-    <div class="kpi l"><div class="klbl">🙏 Diezmo</div><div class="kval">${fmt(diezmoReg)}</div><div class="ksub">${db.config.diezmo}%</div></div>
+    <div class="kpi l"><div class="klbl">🙏 Diezmo pendiente</div><div class="kval">${fmt(db.egresos.filter(e=>e.cat==='diezmo'&&e.estado==='pendiente').reduce((s,e)=>s+e.monto,0))}</div><div class="ksub">${db.config.diezmo}% · click para ver</div></div>
     <div class="kpi a"><div class="klbl">⚖️ Saldo Libre</div><div class="kval" style="color:${saldoLibre>=0?'#2a8a50':'#c03060'}">${fmt(saldoLibre)}</div><div class="ksub">ing.−egr.−diezmo</div></div>
     <div class="kpi d"><div class="klbl">🐣 Total Ahorrado</div><div class="kval">${fmt(totAh)}</div><div class="ksub">de ${fmt(totObj)}</div></div>`;
   buildNeedBox('nb1');
