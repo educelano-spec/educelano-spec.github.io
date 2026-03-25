@@ -16,19 +16,6 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#c8a8e9">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<!-- NAV INFERIOR MÓVIL -->
-<div class="mob-nav" id="mobNav">
-  <button class="mob-btn active" onclick="ST('dash')" id="mb-dash"><span class="mico">🏠</span><span class="mlbl">Inicio</span></button>
-  <button class="mob-btn" onclick="ST('ing')" id="mb-ing"><span class="mico">💚</span><span class="mlbl">Ingresos</span></button>
-  <button class="mob-btn" onclick="ST('egr')" id="mb-egr"><span class="mico">🌸</span><span class="mlbl">Egresos</span></button>
-  <button class="mob-btn" onclick="ST('plan')" id="mb-plan"><span class="mico">📅</span><span class="mlbl">Plan</span></button>
-  <button class="mob-btn" onclick="ST('prest')" id="mb-prest"><span class="mico">🔑</span><span class="mlbl">Préstamos</span></button>
-  <button class="mob-btn" onclick="ST('ahorro')" id="mb-ahorro"><span class="mico">🐣</span><span class="mlbl">Ahorro</span></button>
-  <button class="mob-btn" onclick="ST('balance')" id="mb-balance"><span class="mico">💰</span><span class="mlbl">Balance</span></button>
-  <button class="mob-btn" onclick="ST('flujo')" id="mb-flujo"><span class="mico">📊</span><span class="mlbl">Flujo</span></button>
-  <button class="mob-btn" onclick="ST('cfg')" id="mb-cfg"><span class="mico">⚙️</span><span class="mlbl">Config</span></button>
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -276,6 +263,7 @@ tbody td{padding:9px 13px}
   <button class="tbtn" onclick="ST('prest')">🔑 Préstamos</button>
   <button class="tbtn" onclick="ST('ahorro')">🐣 Ahorro</button>
   <button class="tbtn" onclick="ST('balance')">💰 Balance</button>
+  <button class="tbtn" onclick="ST('gasto')">✏️ Gastos</button>
   <button class="tbtn" onclick="ST('flujo')">📊 Flujo</button>
   <button class="tbtn" onclick="ST('cfg')">⚙️ Config</button>
 </div>
@@ -309,7 +297,7 @@ tbody td{padding:9px 13px}
       <div class="fr">
         <div class="fg"><label>Fuente</label><input type="text" id="iF" placeholder="Ej: Sueldo, Freelance..."></div>
         <div class="fg" style="max-width:165px"><label>Tipo</label>
-          <select id="iT"><option value="fijo1">Fijo Semanal 1</option><option value="fijo2">Fijo Semanal 2</option><option value="fijo3">Fijo Semanal 3</option><option value="quincena">Quincena</option><option value="variable">Variable/Extra</option></select>
+          <select id="iT"><option value="fijo1">Semana 1</option><option value="fijo2">Semana 2</option><option value="fijo3">Semana 3</option><option value="fijo4">Semana 4</option><option value="quincena">Quincena</option><option value="variable">Variable/Extra</option></select>
         </div>
       </div>
       <div class="fr">
@@ -494,7 +482,7 @@ tbody td{padding:9px 13px}
       <div class="fr">
         <div class="fg"><label>Nombre</label><input type="text" id="cN" placeholder="Ej: Sueldo Rene"></div>
         <div class="fg" style="max-width:155px"><label>Tipo</label>
-          <select id="cT"><option value="fijo1">Fijo Semanal 1</option><option value="fijo2">Fijo Semanal 2</option><option value="fijo3">Fijo Semanal 3</option><option value="quincena">Quincena</option></select>
+          <select id="cT"><option value="fijo1">Semana 1</option><option value="fijo2">Semana 2</option><option value="fijo3">Semana 3</option><option value="fijo4">Semana 4</option><option value="quincena">Quincena</option></select>
         </div>
         <div class="fg" style="max-width:125px"><label>Monto estim.</label><input type="number" id="cM" placeholder="0.00"></div>
       </div>
@@ -532,44 +520,84 @@ tbody td{padding:9px 13px}
   </div>
 </div>
 
-<!-- BALANCE DIARIO -->
+<!-- BALANCE / REAL vs PLANIFICADO -->
 <div id="s-balance" class="sec">
   <div class="sh">
-    <h2>💰 Balance del Mes</h2>
+    <h2>💰 Real vs Planificado</h2>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn bs bsm" onclick="nuevoPeriodo()">🔄 Nuevo mes</button>
-      <button class="btn bp bsm" onclick="addGastoExtra()">➕ Gasto extra</button>
+      <button class="btn bs bsm" onclick="ST('gasto')">➕ Cargar gasto</button>
+      <button class="btn bp bsm" onclick="nuevoPeriodo()">🔄 Nuevo mes</button>
     </div>
   </div>
 
-  <!-- KPIs principales -->
+  <!-- KPIs resumen mes -->
   <div class="g4 mb" id="balKpis"></div>
 
-  <!-- Barra de progreso de gasto -->
+  <!-- Barra general plan vs real -->
   <div class="card mb" id="balProgreso"></div>
 
-  <!-- Dos columnas: pendientes y pagados -->
+  <!-- Tabla presupuesto vs real por categoría -->
+  <div class="card mb">
+    <div class="ctitle">📊 Presupuesto vs Real — por categoría</div>
+    <div id="balCats"></div>
+  </div>
+
+  <!-- Movimientos del mes -->
   <div class="g2 mb">
     <div class="card">
-      <div class="ctitle">⏳ Pendientes de pagar</div>
+      <div class="ctitle">⏳ Compromisos pendientes</div>
       <div id="balPend"></div>
     </div>
     <div class="card">
-      <div class="ctitle">✅ Pagados este mes</div>
+      <div class="ctitle">✅ Pagos registrados</div>
       <div id="balPagados"></div>
     </div>
   </div>
+</div>
 
-  <!-- Gastos extra no planificados -->
-  <div class="card mb">
-    <div class="ctitle">🎀 Gastos Extra (no planificados)</div>
-    <div id="balExtras"></div>
+<!-- CARGA DIARIA -->
+<div id="s-gasto" class="sec">
+  <div class="sh"><h2>✏️ Cargar Gasto Real</h2></div>
+  <div class="g2 mb">
+    <div class="card">
+      <div class="ctitle">➕ Nuevo gasto</div>
+      <div class="fr">
+        <div class="fg"><label>Descripción</label><input type="text" id="gdDesc" placeholder="Ej: Woolworths, nafta..."></div>
+        <div class="fg" style="max-width:180px"><label>Categoría</label>
+          <select id="gdCat">
+            <option value="super">🛒 Supermercado</option>
+            <option value="renta">🏠 Renta</option>
+            <option value="telefonia">📱 Telefonía</option>
+            <option value="transporte">🚗 Transporte</option>
+            <option value="educacion">📚 Educación</option>
+            <option value="clases">🎓 Clases</option>
+            <option value="escuela">🏫 Escuela Samu</option>
+            <option value="ahorro">🐣 Ahorro</option>
+            <option value="prestamo">💸 Préstamo</option>
+            <option value="visa">💳 Visa/Tarj.</option>
+            <option value="salud">🏥 Salud</option>
+            <option value="diezmo">🙏 Diezmo</option>
+            <option value="firecamp">🏕️ Fire Camp</option>
+            <option value="varios">🎀 Varios</option>
+          </select>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Monto (AUD)</label><input type="number" id="gdMonto" placeholder="0.00" step="0.01"></div>
+        <div class="fg"><label>Fecha</label><input type="date" id="gdFecha"></div>
+      </div>
+      <div class="fr"><div class="fg"><label>Nota</label><input type="text" id="gdNota" placeholder="Detalle..."></div></div>
+      <button class="btn bp" onclick="addGastoReal()">💾 Registrar gasto</button>
+    </div>
+    <div class="card">
+      <div class="ctitle">📊 Saldo disponible por categoría</div>
+      <div id="gdSaldos"></div>
+    </div>
   </div>
-
-  <!-- Distribución por categoría -->
   <div class="card">
-    <div class="ctitle">📊 Gasto por Categoría — este mes</div>
-    <div id="balCats"></div>
+    <div class="ctitle">📋 Gastos del mes</div>
+    <div class="tw"><table><thead><tr><th>Fecha</th><th>Descripción</th><th class="hide-mob">Cat.</th><th>Monto</th><th></th></tr></thead>
+    <tbody id="gdTabla"></tbody></table></div>
   </div>
 </div>
 
@@ -615,7 +643,7 @@ const FB_PATH = 'finanzas_familia/datos';
 
 // ══════════ DB ══════════
 const KEY='ffv3';
-const DFT=()=>({ingresos:[],egresos:[],prestamos:[],metas:[],fuentes:[],fijos:[],config:{diezmo:10,iglesia:'',initialized:false}});
+const DFT=()=>({ingresos:[],egresos:[],prestamos:[],metas:[],fuentes:[],fijos:[],gastosReales:[],config:{diezmo:10,iglesia:'',initialized:false}});
 let db=DFT();
 let fbSynced=false;
 
@@ -642,7 +670,7 @@ function initFirebaseSync(){
     const val=snap.val();
     if(val){
       db={...DFT(),...val};
-      ['ingresos','egresos','prestamos','metas','fuentes','fijos'].forEach(k=>{if(!Array.isArray(db[k]))db[k]=[];});
+      ['ingresos','egresos','prestamos','metas','fuentes','fijos','gastosReales'].forEach(k=>{if(!Array.isArray(db[k]))db[k]=[];});
       localStorage.setItem(KEY,JSON.stringify(db));
       setFbStatus('live');
       if(fbSynced)renderAll();
@@ -714,7 +742,7 @@ function calcTot(){
   return{ti,fuentesMes,fijosM,diezmoReg,diezmoFuentes,ahorroMetas,necTotal,egrsAll,saldoLibre,gap};
 }
 function calcFuentesMes(){
-  return db.fuentes.reduce((s,f)=>s+(f.tipo==='quincena'?f.monto*2:f.monto*4.33),0);
+  return db.fuentes.reduce((s,f)=>s+(f.tipo==='quincena'?f.monto*2:f.monto*4.33),0); // fijo1-4 y variable todos × 4.33
 }
 
 // ══════════ NAV ══════════
@@ -722,7 +750,7 @@ function ST(t){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
   document.getElementById('s-'+t).classList.add('active');
-  const tabs=['dash','ing','egr','plan','prest','ahorro','balance','flujo','cfg'];
+  const tabs=['dash','ing','egr','plan','prest','ahorro','balance','gasto','flujo','cfg'];
   document.querySelectorAll('.tbtn')[tabs.indexOf(t)]?.classList.add('active');
   // Sincronizar nav inferior móvil
   document.querySelectorAll('.mob-btn').forEach(b=>b.classList.remove('active'));
@@ -760,13 +788,92 @@ function delIng(id){
   save();renderAll();
 };
 
+// ── EDITAR INGRESO ──
+function editIng(id){
+  const i=db.ingresos.find(i=>i.id===id);
+  if(!i) return;
+  // Prellenar el formulario con los datos del ingreso
+  document.getElementById('iF').value=i.fuente;
+  document.getElementById('iM').value=i.monto;
+  document.getElementById('iFe').value=i.fecha;
+  document.getElementById('iT').value=i.tipo;
+  document.getElementById('iN').value=i.nota||'';
+  // Cambiar el botón a "Actualizar"
+  const btn=document.querySelector('#s-ing .btn.bs');
+  btn.textContent='💾 Actualizar';
+  btn.onclick=()=>updateIng(id);
+  // Scroll al formulario
+  document.querySelector('#s-ing .card').scrollIntoView({behavior:'smooth'});
+}
+function updateIng(id){
+  const f=document.getElementById('iF').value.trim();
+  const m=parseFloat(document.getElementById('iM').value);
+  if(!f||!m||m<=0){alert('Completá fuente y monto');return;}
+  const i=db.ingresos.find(i=>i.id===id);
+  if(!i) return;
+  const montoAnterior=i.monto;
+  i.fuente=f; i.monto=m;
+  i.fecha=document.getElementById('iFe').value||hoy();
+  i.tipo=document.getElementById('iT').value;
+  i.nota=document.getElementById('iN').value.trim();
+  // Actualizar diezmo vinculado si cambió el monto
+  if(montoAnterior!==m){
+    const diezmoEgr=db.egresos.find(e=>e.ingId===id&&e.estado==='pendiente');
+    if(diezmoEgr){
+      diezmoEgr.monto=parseFloat((m*(db.config.diezmo/100)).toFixed(2));
+      diezmoEgr.nota=`${db.config.diezmo}% de A$${m.toFixed(2)} (${f})`;
+    }
+  }
+  // Restaurar botón
+  const btn=document.querySelector('#s-ing .btn');
+  btn.textContent='💚 Registrar'; btn.onclick=addIng;
+  ['iF','iM','iN'].forEach(id=>document.getElementById(id).value='');
+  save(); renderAll();
+}
+
+
 function addEgr(){
   const d=document.getElementById('eD').value.trim(),m=parseFloat(document.getElementById('eM').value);
   if(!d||!m||m<=0){alert('Completá descripción y monto');return}
   db.egresos.push({id:uid(),desc:d,monto:m,cat:document.getElementById('eC').value,fecha:document.getElementById('eFe').value||hoy(),freq:document.getElementById('eFr').value,estado:document.getElementById('eEs').value,nota:document.getElementById('eN').value.trim()});
   save();['eD','eM','eN'].forEach(id=>document.getElementById(id).value='');renderAll();
 }
-const delEgr=id=>{db.egresos=db.egresos.filter(e=>e.id!==id);save();renderAll()};
+const delEgr=id=>{db.egresos=db.egresos.filter(e=>e.id!==id);save();renderAll();};
+
+// ── EDITAR EGRESO ──
+function editEgr(id){
+  const e=db.egresos.find(e=>e.id===id);
+  if(!e) return;
+  document.getElementById('eD').value=e.desc;
+  document.getElementById('eM').value=e.monto;
+  document.getElementById('eFe').value=e.fecha;
+  document.getElementById('eC').value=e.cat;
+  document.getElementById('eFr').value=e.freq;
+  document.getElementById('eEs').value=e.estado;
+  document.getElementById('eN').value=e.nota||'';
+  const btn=document.querySelector('#s-egr .btn.bp');
+  btn.textContent='💾 Actualizar egreso';
+  btn.onclick=()=>updateEgr(id);
+  document.querySelector('#s-egr .card').scrollIntoView({behavior:'smooth'});
+}
+function updateEgr(id){
+  const d=document.getElementById('eD').value.trim();
+  const m=parseFloat(document.getElementById('eM').value);
+  if(!d||!m||m<=0){alert('Completá descripción y monto');return;}
+  const e=db.egresos.find(e=>e.id===id);
+  if(!e) return;
+  e.desc=d; e.monto=m;
+  e.cat=document.getElementById('eC').value;
+  e.fecha=document.getElementById('eFe').value||hoy();
+  e.freq=document.getElementById('eFr').value;
+  e.estado=document.getElementById('eEs').value;
+  e.nota=document.getElementById('eN').value.trim();
+  const btn=document.querySelector('#s-egr .btn.bp');
+  btn.textContent='🌸 Registrar'; btn.onclick=addEgr;
+  ['eD','eM','eN'].forEach(id=>document.getElementById(id).value='');
+  save(); renderAll();
+}
+
 function togPag(id){const e=db.egresos.find(e=>e.id===id);if(e){e.estado=e.estado==='pagado'?'pendiente':'pagado';save();renderAll()}}
 
 let filtEgr='todos';
@@ -1086,11 +1193,12 @@ function rBalance(){
   const proyectado=tiM-totalMes;
 
   // KPIs
+  const totalPlanificado=db.fijos.reduce((s,f)=>s+f.monto,0);
   document.getElementById('balKpis').innerHTML=`
     <div class="kpi v"><div class="klbl">💚 Ingresos mes</div><div class="kval">${fmt(tiM)}</div></div>
-    <div class="kpi ${disponible>=0?'a':'r'}"><div class="klbl">💵 Disponible ahora</div><div class="kval" style="color:${disponible>=0?'#2a8a50':'#c03060'}">${fmt(disponible)}</div><div class="ksub">ingresos − pagado</div></div>
-    <div class="kpi r"><div class="klbl">⏳ Por pagar</div><div class="kval">${fmt(totalPend)}</div></div>
-    <div class="kpi ${proyectado>=0?'c':'r'}"><div class="klbl">📈 Saldo proyectado</div><div class="kval" style="color:${proyectado>=0?'#1060a0':'#c03060'}">${fmt(proyectado)}</div><div class="ksub">si se paga todo</div></div>`;
+    <div class="kpi l"><div class="klbl">📋 Plan mensual</div><div class="kval">${fmt(totalPlanificado)}</div><div class="ksub">presupuestado</div></div>
+    <div class="kpi ${disponible>=0?'a':'r'}"><div class="klbl">💵 Disponible real</div><div class="kval" style="color:${disponible>=0?'#2a8a50':'#c03060'}">${fmt(disponible)}</div><div class="ksub">ingresos − pagado</div></div>
+    <div class="kpi ${proyectado>=0?'c':'r'}"><div class="klbl">${proyectado>=0?'✅ Superávit proy.':'⚠️ Déficit proy.'}</div><div class="kval" style="color:${proyectado>=0?'#1060a0':'#c03060'}">${fmt(Math.abs(proyectado))}</div><div class="ksub">si se paga todo</div></div>`;
 
   // Barra progreso
   const pct=totalMes>0?Math.min(100,(totalPag/totalMes*100)).toFixed(0):0;
@@ -1147,40 +1255,192 @@ function rBalance(){
       </div>`).join('');
   }
 
-  // Categorías
-  const cats={};
-  egrMes.forEach(e=>{
-    if(!cats[e.cat])cats[e.cat]={total:0,pagado:0};
-    cats[e.cat].total+=e.monto;
-    if(e.estado==='pagado')cats[e.cat].pagado+=e.monto;
-  });
-  const totC=Object.values(cats).reduce((s,v)=>s+v.total,0);
-  const cols=['#f9a8c9','#c8a8e9','#7ac8f9','#7ec8a0','#f9d97a','#ffb97a','#c8f0da','#fbc8dc'];
-  let ci=0;
-  const catDiv=document.getElementById('balCats');
-  catDiv.innerHTML='';
-  Object.entries(cats).sort((a,b)=>b[1].total-a[1].total).forEach(([cat,v])=>{
-    const pct=totC>0?(v.total/totC*100).toFixed(1):0;
-    const pctPag=v.total>0?(v.pagado/v.total*100).toFixed(0):0;
-    catDiv.innerHTML+=`
-      <div class="pw">
-        <div class="pl">
-          <span>${CE[cat]||'🎀'} <strong>${cat}</strong></span>
-          <span>${fmt(v.pagado)} / ${fmt(v.total)} · ${pct}%</span>
+  // ── Presupuesto vs Real por categoría ──
+  if(!db.gastosReales) db.gastosReales=[];
+  const gastosM=db.gastosReales.filter(g=>g.fecha&&g.fecha.startsWith(mesActual));
+  const presupCats=calcPresupuestoCats();
+  const realPorCat={};
+  gastosM.forEach(g=>{realPorCat[g.cat]=(realPorCat[g.cat]||0)+g.monto;});
+  // También sumar egresos pagados como real
+  pagados.forEach(e=>{realPorCat[e.cat]=(realPorCat[e.cat]||0)+e.monto;});
+
+  const todasCats=new Set([...Object.keys(presupCats),...Object.keys(realPorCat)]);
+  const totalPresup=Array.from(todasCats).reduce((s,c)=>s+(presupCats[c]||0),0);
+  const totalReal=Array.from(todasCats).reduce((s,c)=>s+(realPorCat[c]||0),0);
+  const diffTotal=totalPresup-totalReal;
+
+  let catsHtml=`<div class="tw"><table>
+    <thead><tr><th>Categoría</th><th>Presupuesto</th><th>Real gastado</th><th>Saldo</th><th>%</th></tr></thead><tbody>`;
+  Array.from(todasCats).sort((a,b)=>(presupCats[b]||0)-(presupCats[a]||0)).forEach(cat=>{
+    const presup=presupCats[cat]||0;
+    const real=realPorCat[cat]||0;
+    const saldo=presup-real;
+    const pct=presup>0?(real/presup*100).toFixed(0):'-';
+    const color=saldo<0?'#c03060':saldo<presup*0.1?'#e8a800':'#2a8a50';
+    catsHtml+=`<tr>
+      <td>${CE[cat]||'🎀'} <strong>${cat}</strong></td>
+      <td style="color:#7030b0;font-weight:600">${fmt(presup)}</td>
+      <td style="color:#c03060;font-weight:600">${fmt(real)}</td>
+      <td style="color:${color};font-weight:800">${saldo>=0?'+':''}${fmt(saldo)}</td>
+      <td><div style="display:flex;align-items:center;gap:5px">
+        <div style="width:50px;height:7px;background:var(--gris2);border-radius:4px;overflow:hidden">
+          <div style="width:${Math.min(100,parseFloat(pct)||0)}%;height:100%;background:${saldo<0?'#e05050':saldo<presup*0.1?'var(--amarillo)':'var(--verde)'}"></div>
         </div>
-        <div class="pb">
-          <div class="pf" style="width:${pct}%;background:${cols[ci%cols.length]}"></div>
-        </div>
-        <div style="font-size:.7rem;color:var(--texto2);margin-top:2px">Pagado: ${pctPag}%</div>
-      </div>`;
-    ci++;
+        <span style="font-size:.75rem;color:var(--texto2)">${pct}%</span>
+      </div></td></tr>`;
   });
-  if(!Object.keys(cats).length) catDiv.innerHTML='<div style="color:var(--gris3);font-size:.82rem;text-align:center;padding:14px">Sin movimientos este mes</div>';
+  // Fila total
+  const diffColor=diffTotal>=0?'#2a8a50':'#c03060';
+  catsHtml+=`<tr style="background:var(--lila2);font-weight:800">
+    <td>📋 TOTAL</td>
+    <td style="color:#7030b0">${fmt(totalPresup)}</td>
+    <td style="color:#c03060">${fmt(totalReal)}</td>
+    <td style="color:${diffColor}">${diffTotal>=0?'+':''}${fmt(diffTotal)}</td>
+    <td style="font-size:.8rem;color:${diffColor}">${diffTotal>=0?'✅ Dentro':'⚠️ Excedido'}</td>
+  </tr></tbody></table></div>`;
+  document.getElementById('balCats').innerHTML=catsHtml;
+}
+
+// ══════════ GASTOS REALES (CARGA DIARIA) ══════════
+
+function addGastoReal(){
+  const desc=document.getElementById('gdDesc').value.trim();
+  const monto=parseFloat(document.getElementById('gdMonto').value);
+  if(!desc||!monto||monto<=0){alert('Completá descripción y monto');return;}
+  if(!db.gastosReales) db.gastosReales=[];
+  db.gastosReales.push({
+    id:uid(),
+    desc,
+    cat:document.getElementById('gdCat').value,
+    monto,
+    fecha:document.getElementById('gdFecha').value||hoy(),
+    nota:document.getElementById('gdNota').value.trim()
+  });
+  save();
+  ['gdDesc','gdMonto','gdNota'].forEach(id=>document.getElementById(id).value='');
+  renderAll();
+  alert('✅ Gasto registrado.');
+}
+
+const delGastoReal=id=>{db.gastosReales=db.gastosReales.filter(g=>g.id!==id);save();renderAll();};
+
+// ── EDITAR GASTO REAL ──
+function editGastoReal(id){
+  const g=db.gastosReales.find(g=>g.id===id);
+  if(!g) return;
+  document.getElementById('gdDesc').value=g.desc;
+  document.getElementById('gdMonto').value=g.monto;
+  document.getElementById('gdFecha').value=g.fecha;
+  document.getElementById('gdCat').value=g.cat;
+  document.getElementById('gdNota').value=g.nota||'';
+  const btn=document.querySelector('#s-gasto .btn.bp');
+  btn.textContent='💾 Actualizar gasto';
+  btn.onclick=()=>updateGastoReal(id);
+  document.querySelector('#s-gasto .card').scrollIntoView({behavior:'smooth'});
+}
+function updateGastoReal(id){
+  const desc=document.getElementById('gdDesc').value.trim();
+  const monto=parseFloat(document.getElementById('gdMonto').value);
+  if(!desc||!monto||monto<=0){alert('Completá descripción y monto');return;}
+  const g=db.gastosReales.find(g=>g.id===id);
+  if(!g) return;
+  g.desc=desc; g.monto=monto;
+  g.cat=document.getElementById('gdCat').value;
+  g.fecha=document.getElementById('gdFecha').value||hoy();
+  g.nota=document.getElementById('gdNota').value.trim();
+  const btn=document.querySelector('#s-gasto .btn.bp');
+  btn.textContent='💾 Registrar gasto'; btn.onclick=addGastoReal;
+  ['gdDesc','gdMonto','gdNota'].forEach(id=>document.getElementById(id).value='');
+  save(); renderAll();
+}
+
+
+// Calcular presupuesto por categoría
+// Presupuesto = suma de egresos planificados (no extras) del mes en curso por categoría
+function calcPresupuestoCats(){
+  const p={};
+  const mes=new Date().toISOString().slice(0,7);
+  // Fuente de presupuesto: los egresos recurrentes del mes (planificados)
+  db.egresos.filter(e=>e.fecha&&e.fecha.startsWith(mes)&&!e.esExtra).forEach(e=>{
+    p[e.cat]=(p[e.cat]||0)+e.monto;
+  });
+  // Si no hay egresos del mes cargados, usar fijos como fallback
+  if(Object.keys(p).length===0){
+    db.fijos.forEach(f=>{
+      const d=f.desc.toLowerCase();
+      let cat='varios';
+      if(d.includes('super')||d.includes('mercado')) cat='super';
+      else if(d.includes('renta')||d.includes('rent')||d.includes('alquiler')) cat='renta';
+      else if(d.includes('telef')||d.includes('optus')||d.includes('phone')) cat='telefonia';
+      else if(d.includes('transport')||d.includes('nafta')||d.includes('bus')) cat='transporte';
+      else if(d.includes('estudio')||d.includes('educac')) cat='educacion';
+      else if(d.includes('samu classes')||d.includes('clases')) cat='clases';
+      else if(d.includes('escuela')||d.includes('school')) cat='escuela';
+      else if(d.includes('ahorro')) cat='ahorro';
+      else if(d.includes('préstamo')||d.includes('prestamo')||d.includes('tia mamu')) cat='prestamo';
+      else if(d.includes('visa')||d.includes('tarj')) cat='visa';
+      else if(d.includes('salud')||d.includes('médico')) cat='salud';
+      else if(d.includes('diezmo')) cat='diezmo';
+      else if(d.includes('fire camp')||d.includes('firecamp')) cat='firecamp';
+      p[cat]=(p[cat]||0)+f.monto;
+    });
+  }
+  return p;
+}
+
+function rGasto(){
+  if(!db.gastosReales) db.gastosReales=[];
+  const mes=new Date().toISOString().slice(0,7);
+  const gastosM=db.gastosReales.filter(g=>g.fecha&&g.fecha.startsWith(mes));
+  const presupCats=calcPresupuestoCats();
+
+  // Saldos por categoría
+  // Real = gastosReales del mes + egresos pagados del mes (ambos representan gasto real)
+  const realPorCat={};
+  gastosM.forEach(g=>{realPorCat[g.cat]=(realPorCat[g.cat]||0)+g.monto;});
+  // Sumar también egresos ya pagados (renta pagada, préstamo pagado, etc.)
+  db.egresos.filter(e=>e.fecha&&e.fecha.startsWith(mes)&&e.estado==='pagado'&&!e.esExtra)
+    .forEach(e=>{realPorCat[e.cat]=(realPorCat[e.cat]||0)+e.monto;});
+
+  // Mostrar saldos disponibles
+  const sDiv=document.getElementById('gdSaldos');
+  const todasCats=new Set([...Object.keys(presupCats),...Object.keys(realPorCat)]);
+  let sdHtml='';
+  todasCats.forEach(cat=>{
+    const presup=presupCats[cat]||0;
+    const real=realPorCat[cat]||0;
+    const saldo=presup-real;
+    const pct=presup>0?Math.min(100,(real/presup*100)).toFixed(0):100;
+    const color=saldo<0?'#c03060':saldo<presup*0.15?'#e8a800':'#2a8a50';
+    sdHtml+=`<div class="pw">
+      <div class="pl">
+        <span>${CE[cat]||'🎀'} ${cat}</span>
+        <span style="color:${color};font-weight:700">${fmt(saldo)} libre</span>
+      </div>
+      <div class="pb"><div class="pf" style="width:${pct}%;background:${saldo<0?'#e05050':saldo<presup*0.15?'var(--amarillo)':'var(--verde)'}"></div></div>
+      <div style="font-size:.7rem;color:var(--texto2);margin-top:2px">Gastado ${fmt(real)} de ${fmt(presup)} · ${pct}%</div>
+    </div>`;
+  });
+  if(!sdHtml) sdHtml='<div style="color:var(--gris3);font-size:.82rem;text-align:center;padding:14px">Configurá fijos en ⚙️ Config para ver presupuestos</div>';
+  sDiv.innerHTML=sdHtml;
+
+  // Tabla gastos del mes
+  const tb=document.getElementById('gdTabla');
+  if(!gastosM.length){
+    tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--gris3);padding:18px">Sin gastos registrados este mes</td></tr>';
+  } else {
+    tb.innerHTML=gastosM.slice().sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(g=>`<tr>
+      <td>${g.fecha}</td>
+      <td><strong>${g.desc}</strong><br><span style="font-size:.72rem;color:var(--texto2)">${g.nota||''}</span></td>
+      <td class="hide-mob">${CE[g.cat]||'🎀'} ${g.cat}</td>
+      <td><strong style="color:#c03060">${fmt(g.monto)}</strong></td>
+      <td style='white-space:nowrap'><button class="btn bw bsm" onclick="editGastoReal('${g.id}')">✏️</button> <button class="btn bd" onclick="delGastoReal('${g.id}')">✕</button></td></tr>`).join('');
+  }
 }
 
 // ══════════ RENDER ALL ══════════
 function renderAll(){
-  rHeader();rDash();rTabIng();rTabEgr();rCat();rPlan();rPrest();rMetas();rFlujo();rCfg();rBalance();
+  rHeader();rDash();rTabIng();rTabEgr();rCat();rPlan();rPrest();rMetas();rFlujo();rCfg();rBalance();rGasto();
 }
 
 // ── HEADER ──
@@ -1279,7 +1539,7 @@ function rDash(){
 
 // ── TABLA INGRESOS ──
 function rTabIng(){
-  const TLBL={fijo1:'Fijo Sem.1',fijo2:'Fijo Sem.2',fijo3:'Fijo Sem.3',quincena:'Quincena',variable:'Variable'};
+  const TLBL={fijo1:'Semana 1',fijo2:'Semana 2',fijo3:'Semana 3',fijo4:'Semana 4',quincena:'Quincena',variable:'Variable/Extra'};
   const tb=document.getElementById('tI');
   if(!db.ingresos.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--gris3);padding:20px">Sin registros 🌸</td></tr>';
   }else{tb.innerHTML=db.ingresos.slice().sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(i=>`<tr>
@@ -1287,7 +1547,7 @@ function rTabIng(){
     <td class="hide-mob"><span class="tag ting">${TLBL[i.tipo]||i.tipo}</span></td>
     <td><strong style="color:#2a8a50">${fmt(i.monto)}</strong></td>
     <td class="hide-mob" style="color:var(--texto2);font-size:.78rem">${i.nota||''}</td>
-    <td><button class="btn bd" onclick="delIng('${i.id}')">✕</button></td></tr>`).join('');}
+    <td style='white-space:nowrap'><button class="btn bw bsm" onclick="editIng('${i.id}')">✏️</button> <button class="btn bd" onclick="delIng('${i.id}')">✕</button></td></tr>`).join('');}
   const{ti,necTotal}=calcTot();
   const sem=db.ingresos.filter(i=>inSem(i.fecha)).reduce((s,i)=>s+i.monto,0);
   const iRes=document.getElementById('iRes');
@@ -1318,7 +1578,7 @@ function rTabEgr(){
     <td class="hide-mob"><span style="font-size:.74rem;color:var(--texto2)">${e.freq}</span></td>
     <td><span class="tag ${e.estado==='pagado'?'tpag':'tpen'}" style="cursor:pointer" onclick="togPag('${e.id}')">
       ${e.estado==='pagado'?'✅':'⏳'}</span></td>
-    <td><button class="btn bd" onclick="delEgr('${e.id}')">✕</button></td></tr>`).join('');
+    <td style='white-space:nowrap'><button class="btn bw bsm" onclick="editEgr('${e.id}')">✏️</button> <button class="btn bd" onclick="delEgr('${e.id}')">✕</button></td></tr>`).join('');
 }
 
 // ── CATEGORÍAS ──
@@ -1552,5 +1812,19 @@ if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
 </script>
+<!-- NAV INFERIOR MÓVIL -->
+<div class="mob-nav" id="mobNav">
+  <button class="mob-btn active" onclick="ST('dash')" id="mb-dash"><span class="mico">🏠</span><span class="mlbl">Inicio</span></button>
+  <button class="mob-btn" onclick="ST('ing')" id="mb-ing"><span class="mico">💚</span><span class="mlbl">Ingresos</span></button>
+  <button class="mob-btn" onclick="ST('egr')" id="mb-egr"><span class="mico">🌸</span><span class="mlbl">Egresos</span></button>
+  <button class="mob-btn" onclick="ST('plan')" id="mb-plan"><span class="mico">📅</span><span class="mlbl">Plan</span></button>
+  <button class="mob-btn" onclick="ST('prest')" id="mb-prest"><span class="mico">🔑</span><span class="mlbl">Préstamos</span></button>
+  <button class="mob-btn" onclick="ST('ahorro')" id="mb-ahorro"><span class="mico">🐣</span><span class="mlbl">Ahorro</span></button>
+  <button class="mob-btn" onclick="ST('balance')" id="mb-balance"><span class="mico">💰</span><span class="mlbl">Balance</span></button>
+  <button class="mob-btn" onclick="ST('gasto')" id="mb-gasto"><span class="mico">✏️</span><span class="mlbl">Gastos</span></button>
+  <button class="mob-btn" onclick="ST('flujo')" id="mb-flujo"><span class="mico">📊</span><span class="mlbl">Flujo</span></button>
+  <button class="mob-btn" onclick="ST('cfg')" id="mb-cfg"><span class="mico">⚙️</span><span class="mlbl">Config</span></button>
+</div>
+
 </body>
 </html>
