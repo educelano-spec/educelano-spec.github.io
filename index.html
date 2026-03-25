@@ -2,10 +2,39 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>🌸 Finanzas Familia</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Finanzas">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#c8a8e9">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- NAV INFERIOR MÓVIL -->
+<div class="mob-nav" id="mobNav">
+  <button class="mob-btn active" onclick="ST('dash')" id="mb-dash"><span class="mico">🏠</span><span class="mlbl">Inicio</span></button>
+  <button class="mob-btn" onclick="ST('ing')" id="mb-ing"><span class="mico">💚</span><span class="mlbl">Ingresos</span></button>
+  <button class="mob-btn" onclick="ST('egr')" id="mb-egr"><span class="mico">🌸</span><span class="mlbl">Egresos</span></button>
+  <button class="mob-btn" onclick="ST('plan')" id="mb-plan"><span class="mico">📅</span><span class="mlbl">Plan</span></button>
+  <button class="mob-btn" onclick="ST('prest')" id="mb-prest"><span class="mico">🔑</span><span class="mlbl">Préstamos</span></button>
+  <button class="mob-btn" onclick="ST('ahorro')" id="mb-ahorro"><span class="mico">🐣</span><span class="mlbl">Ahorro</span></button>
+  <button class="mob-btn" onclick="ST('balance')" id="mb-balance"><span class="mico">💰</span><span class="mlbl">Balance</span></button>
+  <button class="mob-btn" onclick="ST('flujo')" id="mb-flujo"><span class="mico">📊</span><span class="mlbl">Flujo</span></button>
+  <button class="mob-btn" onclick="ST('cfg')" id="mb-cfg"><span class="mico">⚙️</span><span class="mlbl">Config</span></button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+window._fbInit = { initializeApp, getDatabase, ref, set, onValue };
+if(typeof window._appStart === 'function') window._appStart();
+</script>
 <style>
 :root{--rosa:#f9a8c9;--rosa2:#fbc8dc;--lila:#c8a8e9;--lila2:#e2d4f5;--verde:#7ec8a0;--verde2:#c8f0da;--amarillo:#f9d97a;--amar2:#fef3c7;--cielo:#7ac8f9;--cielo2:#dbeeff;--durazno:#ffb97a;--duraz2:#ffe8d0;--blanco:#ffffff;--gris1:#f7f4f8;--gris2:#ede9f2;--gris3:#c0b8cc;--texto:#3d2f4a;--texto2:#7a6a8a;--shadow:0 4px 24px rgba(100,60,140,.10)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -112,6 +141,112 @@ tbody td{padding:9px 13px}
 
 @media(max-width:960px){.g4,.g5{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}.main{padding:12px}}
 @media(max-width:600px){.g4,.g5,.g3,.g2{grid-template-columns:1fr}.htitle h1{font-size:1.15rem}.nav{padding:9px 9px 0}}
+
+/* ══════════ MOBILE OPTIMIZATIONS ══════════ */
+@media(max-width:600px){
+  /* Header compacto */
+  .header{padding:10px 14px;gap:7px}
+  .htitle h1{font-size:1.05rem}
+  .hdate{display:none}
+  .hright{gap:6px;width:100%}
+  .hkpi{padding:5px 9px;flex:1}
+  .hkpi-l{font-size:.58rem}
+  .hkpi-v{font-size:.88rem}
+  #fbStatus{font-size:.62rem;padding:4px 7px}
+
+  /* Nav superior → ocultar en móvil, reemplazar con nav inferior */
+  .nav{display:none}
+
+  /* Nav inferior tipo app */
+  .mob-nav{display:flex!important}
+
+  /* Contenido con espacio para nav inferior */
+  .main{padding:10px 10px 80px;overflow-x:hidden}
+
+  /* Cards más compactas */
+  .card{padding:14px;border-radius:12px}
+  .ctitle{font-size:.9rem;margin-bottom:10px}
+
+  /* Formularios: una columna, inputs más grandes para touch */
+  .fr{flex-direction:column;gap:8px}
+  .fg{min-width:100%}
+  .fg input,.fg select{padding:11px 13px;font-size:1rem;border-radius:10px}
+
+  /* Botones más grandes para touch */
+  .btn{padding:11px 20px;font-size:.88rem;border-radius:10px}
+  .bsm{padding:9px 15px;font-size:.82rem}
+  .bd{padding:7px 13px;font-size:.78rem}
+
+  /* Tablas: scroll horizontal con texto más pequeño */
+  .tw{border-radius:9px}
+  table{font-size:.76rem}
+  thead th{padding:8px 9px;font-size:.67rem}
+  tbody td{padding:8px 9px}
+
+  /* KPIs en grilla más compacta */
+  .kpi{padding:12px}
+  .kval{font-size:1.15rem}
+
+  /* Modal full-width */
+  .md{padding:20px 18px;max-width:98vw;margin:0 10px}
+
+  /* Need box */
+  .nbox{padding:13px}
+  .nrow{font-size:.79rem}
+
+  /* Ocultar columnas menos importantes en tablas */
+  .hide-mob{display:none!important}
+
+  /* Inputs de fecha más fáciles de tocar */
+  input[type="date"]{min-height:44px}
+
+  /* Metas en 1 columna */
+  #lM .g3{grid-template-columns:1fr!important}
+
+  /* sh (section header) */
+  .sh h2{font-size:1rem}
+  .sh .btn{font-size:.78rem}
+
+  /* escbadge */
+  .escbadge{font-size:.78rem;padding:9px 12px}
+}
+
+
+/* BALANCE */
+.bal-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:10px;background:var(--gris1);border:1.5px solid var(--gris2);margin-bottom:6px;transition:all .2s}
+.bal-item.pagado{background:var(--verde2);border-color:var(--verde);opacity:.85}
+.bal-item.extra{background:var(--amar2);border-color:var(--amarillo)}
+.bal-chk{width:22px;height:22px;border-radius:6px;border:2px solid var(--gris3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;font-size:.9rem}
+.bal-chk.on{background:var(--verde);border-color:var(--verde);color:#fff}
+.bal-info{flex:1;font-size:.83rem}
+.bal-monto{font-weight:800;font-size:.92rem;white-space:nowrap}
+.bal-monto.pos{color:#2a8a50}.bal-monto.neg{color:#c03060}
+@media(max-width:600px){.bal-item{padding:9px 10px}.bal-info{font-size:.79rem}}
+
+/* Nav inferior móvil — oculto en desktop */
+.mob-nav{
+  display:none;
+  position:fixed;
+  bottom:0;left:0;right:0;
+  background:linear-gradient(135deg,#fff0f7,#f0ebff);
+  border-top:2px solid var(--rosa2);
+  z-index:150;
+  padding:6px 4px env(safe-area-inset-bottom,6px);
+  box-shadow:0 -4px 20px rgba(180,100,200,.12);
+  justify-content:space-around;
+  align-items:center;
+}
+.mob-btn{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:5px 6px;border:none;background:transparent;cursor:pointer;
+  border-radius:10px;transition:background .15s;min-width:38px;
+  font-family:'DM Sans',sans-serif;
+}
+.mob-btn .mico{font-size:1.3rem;line-height:1}
+.mob-btn .mlbl{font-size:.57rem;font-weight:600;color:var(--texto2);line-height:1}
+.mob-btn.active{background:var(--lila2)}
+.mob-btn.active .mlbl{color:#7030b0}
+
 </style>
 </head>
 <body>
@@ -140,6 +275,7 @@ tbody td{padding:9px 13px}
   <button class="tbtn" onclick="ST('plan')">📅 Plan</button>
   <button class="tbtn" onclick="ST('prest')">🔑 Préstamos</button>
   <button class="tbtn" onclick="ST('ahorro')">🐣 Ahorro</button>
+  <button class="tbtn" onclick="ST('balance')">💰 Balance</button>
   <button class="tbtn" onclick="ST('flujo')">📊 Flujo</button>
   <button class="tbtn" onclick="ST('cfg')">⚙️ Config</button>
 </div>
@@ -187,7 +323,7 @@ tbody td{padding:9px 13px}
   </div>
   <div class="card">
     <div class="ctitle">📋 Historial</div>
-    <div class="tw"><table><thead><tr><th>Fecha</th><th>Fuente</th><th>Tipo</th><th>Monto</th><th>Nota</th><th></th></tr></thead>
+    <div class="tw"><table><thead><tr><th>Fecha</th><th>Fuente</th><th class="hide-mob">Tipo</th><th>Monto</th><th class="hide-mob">Nota</th><th></th></tr></thead>
     <tbody id="tI"></tbody></table></div>
   </div>
 </div>
@@ -235,7 +371,7 @@ tbody td{padding:9px 13px}
       <button class="btn bsm" id="fP" onclick="filtE('pendiente')" style="background:var(--gris2)">⏳ Pend.</button>
       <button class="btn bsm" id="fPa" onclick="filtE('pagado')" style="background:var(--gris2)">✅ Pag.</button>
     </div>
-    <div class="tw"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Cat.</th><th>Monto</th><th>Freq.</th><th>Estado</th><th></th></tr></thead>
+    <div class="tw"><table><thead><tr><th>Fecha</th><th>Descripción</th><th class="hide-mob">Cat.</th><th>Monto</th><th class="hide-mob">Freq.</th><th>Estado</th><th></th></tr></thead>
     <tbody id="tE"></tbody></table></div>
   </div>
 </div>
@@ -396,6 +532,48 @@ tbody td{padding:9px 13px}
   </div>
 </div>
 
+<!-- BALANCE DIARIO -->
+<div id="s-balance" class="sec">
+  <div class="sh">
+    <h2>💰 Balance del Mes</h2>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn bs bsm" onclick="nuevoPeriodo()">🔄 Nuevo mes</button>
+      <button class="btn bp bsm" onclick="addGastoExtra()">➕ Gasto extra</button>
+    </div>
+  </div>
+
+  <!-- KPIs principales -->
+  <div class="g4 mb" id="balKpis"></div>
+
+  <!-- Barra de progreso de gasto -->
+  <div class="card mb" id="balProgreso"></div>
+
+  <!-- Dos columnas: pendientes y pagados -->
+  <div class="g2 mb">
+    <div class="card">
+      <div class="ctitle">⏳ Pendientes de pagar</div>
+      <div id="balPend"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">✅ Pagados este mes</div>
+      <div id="balPagados"></div>
+    </div>
+  </div>
+
+  <!-- Gastos extra no planificados -->
+  <div class="card mb">
+    <div class="ctitle">🎀 Gastos Extra (no planificados)</div>
+    <div id="balExtras"></div>
+  </div>
+
+  <!-- Distribución por categoría -->
+  <div class="card">
+    <div class="ctitle">📊 Gasto por Categoría — este mes</div>
+    <div id="balCats"></div>
+  </div>
+</div>
+
+
 </div>
 
 <div class="mo" id="mReset">
@@ -409,25 +587,17 @@ tbody td{padding:9px 13px}
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-window._fbInit = { initializeApp, getDatabase, ref, set, onValue };
-// El módulo ES siempre corre DESPUÉS del script clásico.
-// El script clásico ya dejó _appStart lista en window, la llamamos acá.
-if(typeof window._appStart === 'function') window._appStart();
-</script>
 <script>
 // ══════════ FIREBASE CONFIG ══════════
 // 👇 REEMPLAZÁ estos valores con los de tu proyecto Firebase
 const FB_CONFIG = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
-  projectId: "TU_PROYECTO",
-  storageBucket: "TU_PROYECTO.appspot.com",
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID"
+  apiKey: "AIzaSyBSf_g5FgZRZa9KqOpq3ZuJatOi3wwSGhg",
+  authDomain: "finanzas-famly.firebaseapp.com",
+  databaseURL: "https://finanzas-famly-default-rtdb.firebaseio.com",
+  projectId: "finanzas-famly",
+  storageBucket: "finanzas-famly.firebasestorage.app",
+  messagingSenderId: "928329252641",
+  appId: "1:928329252641:web:3709a2ee5d43f738088860"
 };
 
 let fbDb=null, fbRef=null, fbSet=null, fbOnValue=null;
@@ -449,60 +619,48 @@ const DFT=()=>({ingresos:[],egresos:[],prestamos:[],metas:[],fuentes:[],fijos:[]
 let db=DFT();
 let fbSynced=false;
 
-// Guardar: escribe en Firebase (fuente de verdad) y en localStorage como caché
 const save=()=>{
   localStorage.setItem(KEY,JSON.stringify(db));
   if(fbDb&&fbSet&&fbRef){
-    fbSet(fbRef(fbDb, FB_PATH), db)
+    fbSet(fbRef(fbDb,FB_PATH),db)
       .then(()=>setFbStatus('ok'))
       .catch(()=>setFbStatus('error'));
   }
 };
 
 function setFbStatus(s){
-  const el=document.getElementById('fbStatus');
-  if(!el)return;
+  const el=document.getElementById('fbStatus');if(!el)return;
   if(s==='ok'){el.textContent='☁️ Sincronizado';el.style.background='var(--verde2)';el.style.color='#1a5a38';}
   else if(s==='error'){el.textContent='⚠️ Sin conexión';el.style.background='var(--amar2)';el.style.color='#6a4a10';}
   else if(s==='live'){el.textContent='🟢 En vivo';el.style.background='var(--cielo2)';el.style.color='#104060';}
   else{el.textContent='⏳ Conectando…';el.style.background='var(--gris2)';el.style.color='var(--texto2)';}
 }
 
-// Escuchar cambios en tiempo real desde Firebase
 function initFirebaseSync(){
-  if(!initFirebase()){
-    // Firebase no disponible: usar solo localStorage
-    setFbStatus('error');
-    load();initData();renderAll();
-    return;
-  }
-  fbOnValue(fbRef(fbDb, FB_PATH), snap=>{
+  if(!initFirebase()){setFbStatus('error');load();initData();renderAll();return;}
+  fbOnValue(fbRef(fbDb,FB_PATH),snap=>{
     const val=snap.val();
     if(val){
       db={...DFT(),...val};
       ['ingresos','egresos','prestamos','metas','fuentes','fijos'].forEach(k=>{if(!Array.isArray(db[k]))db[k]=[];});
       localStorage.setItem(KEY,JSON.stringify(db));
       setFbStatus('live');
-      if(fbSynced) renderAll();
+      if(fbSynced)renderAll();
     } else {
       setFbStatus('ok');
     }
     if(!fbSynced){fbSynced=true;initData();renderAll();}
-  }, err=>{
+  },err=>{
     console.warn('Firebase error, usando localStorage',err);
-    setFbStatus('error');
-    load();initData();renderAll();
+    setFbStatus('error');load();initData();renderAll();
   });
 }
 
-function load(){
-  const d=localStorage.getItem(KEY);
-  if(d){try{const p=JSON.parse(d);db={...DFT(),...p};}catch(e){}}
-}
+function load(){const d=localStorage.getItem(KEY);if(d){try{const p=JSON.parse(d);db={...DFT(),...p};}catch(e){}}}
 
 // ══════════ DATOS INICIALES REALES ══════════
 function initData(){
-  if(db.config && db.config.initialized) return;
+  if(db.config&&db.config.initialized)return;
   // Compromisos fijos mensuales en AUD
   // Renta: A$800/sem × 4.33 = A$3,467/mes
   // Escuela Samu: A$3080 / 2.5 meses = A$1,232/mes prorrateado
@@ -523,8 +681,7 @@ function initData(){
   if(!db.prestamos.length){
     db.prestamos.push({id:uid(),nombre:'Préstamo Tia Mamu',tipo:'familiar',total:0,cuota:1000,cuotasTot:12,cuotasPag:0,dia:1,nota:'Pago mensual fijo'});
   }
-  // Marcar como inicializado para no repetir al borrar fijos manualmente
-  db.config.initialized = true;
+  db.config.initialized=true;
   save();
 }
 
@@ -565,8 +722,11 @@ function ST(t){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
   document.getElementById('s-'+t).classList.add('active');
-  const tabs=['dash','ing','egr','plan','prest','ahorro','flujo','cfg'];
+  const tabs=['dash','ing','egr','plan','prest','ahorro','balance','flujo','cfg'];
   document.querySelectorAll('.tbtn')[tabs.indexOf(t)]?.classList.add('active');
+  // Sincronizar nav inferior móvil
+  document.querySelectorAll('.mob-btn').forEach(b=>b.classList.remove('active'));
+  const mb=document.getElementById('mb-'+t);if(mb)mb.classList.add('active');
   renderAll();
 }
 
@@ -765,9 +925,262 @@ function saveDiezmo(){
   save();renderAll();alert('✅ Guardado. Diezmos pendientes actualizados al '+nuevoPct+'%.');
 }
 
+// ══════════ BALANCE MENSUAL ══════════
+
+function checkResetMensual(){
+  const mesActual = new Date().toISOString().slice(0,7);
+  if(db.config.ultimoMes === mesActual) return;
+
+  const mesAnterior = db.config.ultimoMes;
+  if(mesAnterior){
+    if(!db.historialMeses) db.historialMeses=[];
+
+    // Separar pagados y no pagados del mes anterior
+    const recurrentes = db.egresos.filter(e=>['mensual','semanal','quincenal'].includes(e.freq));
+    const pagadosMes  = recurrentes.filter(e=>e.estado==='pagado');
+    const noPagados   = recurrentes.filter(e=>e.estado==='pendiente');
+
+    // ── Guardar historial ──
+    db.historialMeses.push({
+      mes: mesAnterior,
+      totalPagado:  pagadosMes.reduce((s,e)=>s+e.monto,0),
+      totalOmitido: noPagados.reduce((s,e)=>s+e.monto,0),
+      items: recurrentes.map(e=>({desc:e.desc,monto:e.monto,cat:e.cat,estado:e.estado}))
+    });
+    if(db.historialMeses.length>12) db.historialMeses=db.historialMeses.slice(-12);
+
+    // ── Acumular deuda de egresos no pagados ──
+    // Si un egreso quedó sin pagar, se suma su monto al egreso del mes nuevo
+    noPagados.forEach(e=>{
+      e.deudaAcumulada = (e.deudaAcumulada||0) + e.monto;
+      e.notaDeuda = `⚠️ Incluye A$${e.deudaAcumulada.toFixed(2)} de meses anteriores sin pagar`;
+    });
+
+    // ── Recalcular metas de ahorro con lo que realmente se pagó ──
+    db.metas.forEach(m=>{
+      if(!m.fecha || m.actual>=m.obj) return;
+      // Buscar cuánto se pagó realmente de esta meta el mes anterior
+      const egrMeta = pagadosMes.filter(e=>e.metaId===m.id);
+      const pagadoMeta = egrMeta.reduce((s,e)=>s+e.monto,0);
+      // Cuánto debería haberse pagado (semanal × 4.33)
+      const debiaPagar = parseFloat((m.semanal*4.33).toFixed(2));
+      const diferencia = debiaPagar - pagadoMeta; // positivo = pagó de menos
+
+      if(diferencia > 0.01){
+        // No pagó todo — la diferencia se distribuye en las semanas restantes
+        const semsRestantes = semanasHasta(m.fecha);
+        const faltaTotal = Math.max(0, m.obj - m.actual);
+        const nuevoSemanal = semsRestantes>0 ? parseFloat((faltaTotal/semsRestantes).toFixed(2)) : m.semanal;
+        m.semanal = nuevoSemanal;
+        // Actualizar egreso vinculado
+        const egrVinc = db.egresos.find(e=>e.metaId===m.id&&e.estado==='pendiente');
+        if(egrVinc){
+          egrVinc.monto = nuevoSemanal;
+          egrVinc.nota = `Meta: ${fmt(m.obj)} al ${m.fecha} · ⚠️ Recalculado (faltaron ${fmt(diferencia)} el mes pasado)`;
+        }
+      } else if(pagadoMeta > 0){
+        // Pagó — actualizar lo ahorrado
+        m.actual = Math.min(m.obj, m.actual + pagadoMeta);
+        // Recalcular cuota con lo nuevo
+        const semsRestantes = semanasHasta(m.fecha);
+        const faltaTotal = Math.max(0, m.obj - m.actual);
+        if(semsRestantes>0 && faltaTotal>0){
+          m.semanal = parseFloat((faltaTotal/semsRestantes).toFixed(2));
+          const egrVinc = db.egresos.find(e=>e.metaId===m.id&&e.estado==='pendiente');
+          if(egrVinc) egrVinc.monto = m.semanal;
+        }
+      }
+    });
+  }
+
+  // ── Resetear estado de todos los recurrentes al nuevo mes ──
+  db.egresos.forEach(e=>{
+    if(['mensual','semanal','quincenal'].includes(e.freq)){
+      // Si tiene deuda acumulada, el monto del mes nuevo incluye la deuda
+      if(e.deudaAcumulada && e.deudaAcumulada>0){
+        e.montoBase = e.montoBase || e.monto; // guardar monto original
+        e.monto = parseFloat((e.montoBase + e.deudaAcumulada).toFixed(2));
+        // No limpiar deudaAcumulada hasta que se pague
+      } else {
+        // Restaurar monto base si ya no hay deuda
+        if(e.montoBase) e.monto = e.montoBase;
+      }
+      e.estado = 'pendiente';
+      e.fecha = mesActual+'-01';
+    }
+  });
+
+  // Limpiar extras ya pagados del mes anterior
+  db.egresos = db.egresos.filter(e=>!(e.freq==='unico'&&e.estado==='pagado'&&e.esExtra));
+
+  db.config.ultimoMes = mesActual;
+  save();
+}
+
+// Al marcar un egreso como pagado, limpiar su deuda acumulada
+function pagarEgrYLimpiarDeuda(id){
+  const e=db.egresos.find(e=>e.id===id);
+  if(!e) return;
+  e.estado='pagado';
+  // Si tenía deuda acumulada y ahora se paga completo, limpiarla
+  if(e.deudaAcumulada){
+    e.deudaAcumulada=0;
+    if(e.montoBase) e.monto=e.montoBase; // restaurar monto normal
+  }
+  save(); rBalance();
+}
+
+function nuevoPeriodo(){
+  if(!confirm('¿Resetear todos los egresos recurrentes a "Pendiente" para el nuevo mes?\n\nSe guardará el historial del mes actual.')) return;
+  db.config.ultimoMes = null; // forzar reset
+  checkResetMensual();
+  renderAll();
+  alert('✅ Nuevo período iniciado. Todos los egresos recurrentes vuelven a "Pendiente".');
+}
+
+function addGastoExtra(){
+  const desc = prompt('Descripción del gasto extra:');
+  if(!desc || !desc.trim()) return;
+  const monto = parseFloat(prompt('Monto (AUD):') || '0');
+  if(!monto || monto<=0) return;
+  const cats = Object.keys(CE);
+  const catList = cats.map((c,i)=>`${i+1}. ${CE[c]} ${c}`).join('\n');
+  const catIdx = parseInt(prompt('Categoría (número):\n'+catList)||'0')-1;
+  const cat = cats[catIdx] || 'varios';
+  db.egresos.push({
+    id:uid(), desc:desc.trim(), monto, cat,
+    fecha:hoy(), freq:'unico', estado:'pendiente',
+    nota:'Gasto extra no planificado', esExtra:true
+  });
+  save(); renderAll(); ST('balance');
+}
+
+function togBalPago(id){
+  const e=db.egresos.find(e=>e.id===id);
+  if(!e) return;
+  if(e.estado==='pendiente'){
+    pagarEgrYLimpiarDeuda(id);
+  } else {
+    e.estado='pendiente';
+    save(); rBalance();
+  }
+}
+
+function rBalance(){
+  checkResetMensual();
+  const mesActual=new Date().toISOString().slice(0,7);
+  const iM=db.ingresos.filter(i=>inMes(i.fecha));
+  const tiM=iM.reduce((s,i)=>s+i.monto,0);
+
+  // Separar egresos del mes
+  const egrMes=db.egresos.filter(e=>e.fecha&&e.fecha.startsWith(mesActual));
+  const planificados=egrMes.filter(e=>!e.esExtra);
+  const extras=egrMes.filter(e=>e.esExtra);
+  const pendientes=egrMes.filter(e=>e.estado==='pendiente');
+  const pagados=egrMes.filter(e=>e.estado==='pagado');
+
+  const totalPend=pendientes.reduce((s,e)=>s+e.monto,0);
+  const totalPag=pagados.reduce((s,e)=>s+e.monto,0);
+  const totalMes=egrMes.reduce((s,e)=>s+e.monto,0);
+  const disponible=tiM-totalPag;
+  const proyectado=tiM-totalMes;
+
+  // KPIs
+  document.getElementById('balKpis').innerHTML=`
+    <div class="kpi v"><div class="klbl">💚 Ingresos mes</div><div class="kval">${fmt(tiM)}</div></div>
+    <div class="kpi ${disponible>=0?'a':'r'}"><div class="klbl">💵 Disponible ahora</div><div class="kval" style="color:${disponible>=0?'#2a8a50':'#c03060'}">${fmt(disponible)}</div><div class="ksub">ingresos − pagado</div></div>
+    <div class="kpi r"><div class="klbl">⏳ Por pagar</div><div class="kval">${fmt(totalPend)}</div></div>
+    <div class="kpi ${proyectado>=0?'c':'r'}"><div class="klbl">📈 Saldo proyectado</div><div class="kval" style="color:${proyectado>=0?'#1060a0':'#c03060'}">${fmt(proyectado)}</div><div class="ksub">si se paga todo</div></div>`;
+
+  // Barra progreso
+  const pct=totalMes>0?Math.min(100,(totalPag/totalMes*100)).toFixed(0):0;
+  const pctGasto=tiM>0?Math.min(100,(totalPag/tiM*100)).toFixed(0):0;
+  document.getElementById('balProgreso').innerHTML=`
+    <div style="font-weight:700;font-size:.9rem;margin-bottom:10px">📋 Progreso de pagos del mes</div>
+    <div class="pl"><span>Pagado ${fmt(totalPag)} de ${fmt(totalMes)} planificado</span><span>${pct}%</span></div>
+    <div class="pb" style="height:12px;margin-bottom:10px"><div class="pf" style="width:${pct}%;background:linear-gradient(90deg,var(--verde),var(--cielo))"></div></div>
+    <div class="pl"><span>Del ingreso mensual gastado</span><span>${pctGasto}%</span></div>
+    <div class="pb" style="height:8px"><div class="pf" style="width:${pctGasto}%;background:linear-gradient(90deg,var(--amarillo),${parseInt(pctGasto)>80?'#e05050':'var(--verde)'})"></div></div>`;
+
+  // Pendientes
+  const pDiv=document.getElementById('balPend');
+  if(!pendientes.length){
+    pDiv.innerHTML='<div class="al ao">✅ ¡Todo pagado este mes!</div>';
+  } else {
+    pDiv.innerHTML=pendientes.sort((a,b)=>a.monto-b.monto).map(e=>`
+      <div class="bal-item" id="bi-${e.id}">
+        <div class="bal-chk" onclick="togBalPago('${e.id}')" title="Marcar como pagado">☐</div>
+        <div class="bal-info">
+          <strong>${CE[e.cat]||'🎀'} ${e.desc}</strong>
+          ${e.esExtra?'<span style="font-size:.7rem;color:#9a6010;margin-left:5px">extra</span>':''}
+          ${e.deudaAcumulada>0?`<span style="font-size:.7rem;color:#c03060;margin-left:5px">⚠️ +${fmt(e.deudaAcumulada)} acumulado</span>`:''}
+          <br><span style="font-size:.72rem;color:var(--texto2)">${e.cat} · ${e.freq}${e.montoBase&&e.deudaAcumulada>0?' · Base: '+fmt(e.montoBase):''}</span>
+        </div>
+        <div class="bal-monto neg">${fmt(e.monto)}</div>
+      </div>`).join('');
+  }
+
+  // Pagados
+  const pgDiv=document.getElementById('balPagados');
+  if(!pagados.length){
+    pgDiv.innerHTML='<div style="color:var(--gris3);font-size:.82rem;text-align:center;padding:14px">Aún no hay pagos registrados</div>';
+  } else {
+    pgDiv.innerHTML=pagados.map(e=>`
+      <div class="bal-item pagado">
+        <div class="bal-chk on" onclick="togBalPago('${e.id}')" title="Desmarcar">✓</div>
+        <div class="bal-info"><strong>${CE[e.cat]||'🎀'} ${e.desc}</strong><br><span style="font-size:.72rem;color:var(--texto2)">${e.cat}</span></div>
+        <div class="bal-monto pos">${fmt(e.monto)}</div>
+      </div>`).join('');
+  }
+
+  // Extras
+  const exDiv=document.getElementById('balExtras');
+  if(!extras.length){
+    exDiv.innerHTML='<div style="color:var(--gris3);font-size:.82rem;text-align:center;padding:10px">Sin gastos extra este mes 🌟</div>';
+  } else {
+    exDiv.innerHTML=extras.map(e=>`
+      <div class="bal-item extra">
+        <div class="bal-chk ${e.estado==='pagado'?'on':''}" onclick="togBalPago('${e.id}')">${e.estado==='pagado'?'✓':'☐'}</div>
+        <div class="bal-info"><strong>${CE[e.cat]||'🎀'} ${e.desc}</strong><br><span style="font-size:.72rem;color:var(--texto2)">${e.fecha}</span></div>
+        <div class="bal-monto neg">${fmt(e.monto)}</div>
+        <button class="btn bd" onclick="delEgr('${e.id}')">✕</button>
+      </div>`).join('');
+  }
+
+  // Categorías
+  const cats={};
+  egrMes.forEach(e=>{
+    if(!cats[e.cat])cats[e.cat]={total:0,pagado:0};
+    cats[e.cat].total+=e.monto;
+    if(e.estado==='pagado')cats[e.cat].pagado+=e.monto;
+  });
+  const totC=Object.values(cats).reduce((s,v)=>s+v.total,0);
+  const cols=['#f9a8c9','#c8a8e9','#7ac8f9','#7ec8a0','#f9d97a','#ffb97a','#c8f0da','#fbc8dc'];
+  let ci=0;
+  const catDiv=document.getElementById('balCats');
+  catDiv.innerHTML='';
+  Object.entries(cats).sort((a,b)=>b[1].total-a[1].total).forEach(([cat,v])=>{
+    const pct=totC>0?(v.total/totC*100).toFixed(1):0;
+    const pctPag=v.total>0?(v.pagado/v.total*100).toFixed(0):0;
+    catDiv.innerHTML+=`
+      <div class="pw">
+        <div class="pl">
+          <span>${CE[cat]||'🎀'} <strong>${cat}</strong></span>
+          <span>${fmt(v.pagado)} / ${fmt(v.total)} · ${pct}%</span>
+        </div>
+        <div class="pb">
+          <div class="pf" style="width:${pct}%;background:${cols[ci%cols.length]}"></div>
+        </div>
+        <div style="font-size:.7rem;color:var(--texto2);margin-top:2px">Pagado: ${pctPag}%</div>
+      </div>`;
+    ci++;
+  });
+  if(!Object.keys(cats).length) catDiv.innerHTML='<div style="color:var(--gris3);font-size:.82rem;text-align:center;padding:14px">Sin movimientos este mes</div>';
+}
+
 // ══════════ RENDER ALL ══════════
 function renderAll(){
-  rHeader();rDash();rTabIng();rTabEgr();rCat();rPlan();rPrest();rMetas();rFlujo();rCfg();
+  rHeader();rDash();rTabIng();rTabEgr();rCat();rPlan();rPrest();rMetas();rFlujo();rCfg();rBalance();
 }
 
 // ── HEADER ──
@@ -851,7 +1264,6 @@ function rDash(){
   const ew=db.egresos.filter(e=>inSem(e.fecha));
   const tiw=iw.reduce((s,i)=>s+i.monto,0);
   const tew=ew.reduce((s,e)=>s+e.monto,0);
-  // El diezmo ya está incluido dentro de tew como egreso real, no se resta por separado
   const diw=ew.filter(e=>e.cat==='diezmo').reduce((s,e)=>s+e.monto,0);
   const sneto=tiw-tew;
   const necSem=necTotal/4.33;
@@ -872,9 +1284,9 @@ function rTabIng(){
   if(!db.ingresos.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--gris3);padding:20px">Sin registros 🌸</td></tr>';
   }else{tb.innerHTML=db.ingresos.slice().sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(i=>`<tr>
     <td>${i.fecha}</td><td><strong>${i.fuente}</strong></td>
-    <td><span class="tag ting">${TLBL[i.tipo]||i.tipo}</span></td>
+    <td class="hide-mob"><span class="tag ting">${TLBL[i.tipo]||i.tipo}</span></td>
     <td><strong style="color:#2a8a50">${fmt(i.monto)}</strong></td>
-    <td style="color:var(--texto2);font-size:.78rem">${i.nota||''}</td>
+    <td class="hide-mob" style="color:var(--texto2);font-size:.78rem">${i.nota||''}</td>
     <td><button class="btn bd" onclick="delIng('${i.id}')">✕</button></td></tr>`).join('');}
   const{ti,necTotal}=calcTot();
   const sem=db.ingresos.filter(i=>inSem(i.fecha)).reduce((s,i)=>s+i.monto,0);
@@ -901,11 +1313,11 @@ function rTabEgr(){
   tb.innerHTML=lista.map(e=>`<tr>
     <td>${e.fecha}</td>
     <td><strong>${e.desc}</strong><br><span style="font-size:.72rem;color:var(--texto2)">${e.nota||''}</span></td>
-    <td>${CE[e.cat]||'🎀'} <span style="font-size:.76rem">${e.cat}</span></td>
+    <td class="hide-mob">${CE[e.cat]||'🎀'} <span style="font-size:.76rem">${e.cat}</span></td>
     <td><strong style="color:#c03060">${fmt(e.monto)}</strong></td>
-    <td><span style="font-size:.74rem;color:var(--texto2)">${e.freq}</span></td>
+    <td class="hide-mob"><span style="font-size:.74rem;color:var(--texto2)">${e.freq}</span></td>
     <td><span class="tag ${e.estado==='pagado'?'tpag':'tpen'}" style="cursor:pointer" onclick="togPag('${e.id}')">
-      ${e.estado==='pagado'?'✅ Pagado':'⏳ Pendiente'}</span></td>
+      ${e.estado==='pagado'?'✅':'⏳'}</span></td>
     <td><button class="btn bd" onclick="delEgr('${e.id}')">✕</button></td></tr>`).join('');
 }
 
@@ -1097,7 +1509,6 @@ function rFlujo(){
   if(neto<0)recos.push({d:'dw',t:`🚨 Déficit de ${fmt(Math.abs(neto))}. Egresos superan ingresos del período.`});
   if(gap>0)recos.push({d:'dw',t:`⚠️ Necesitás ${fmt(gap)} más ${mFlujo==='semanal'?'esta semana':'este mes'} para cubrir todos los compromisos.`});
   if(di>0)recos.push({d:'dl',t:`🙏 Diezmo a apartar: ${fmt(di)} (${db.config.diezmo}%)${db.config.iglesia?' → '+db.config.iglesia:''}`});
-  // Recomendaciones dinámicas basadas en fijos configurados
   const fijoEscuela=db.fijos.find(f=>f.desc&&f.desc.toLowerCase().includes('samu')&&f.desc.toLowerCase().includes('escuela'));
   if(fijoEscuela){const porSem=fijoEscuela.monto/4.33;recos.push({d:'dm',t:`🏫 ${fijoEscuela.desc}: Separar ${fmt(porSem)}/semana (${fmt(fijoEscuela.monto)}/mes).`});}
   const fijoRenta=db.fijos.find(f=>f.desc&&f.desc.toLowerCase().includes('renta'));
@@ -1130,14 +1541,16 @@ function closeModal(){document.getElementById('mReset').classList.remove('open')
 function doReset(){localStorage.removeItem(KEY);db=DFT();initData();closeModal();renderAll();}
 
 // ══════════ INIT ══════════
-load(); // caché inmediata de localStorage
+load();
 document.querySelectorAll('input[type="date"]').forEach(inp=>{if(!inp.value)inp.value=hoy()});
-
-// El módulo ES (Firebase) siempre corre después de este script clásico.
-// Dejamos _appStart en window para que el módulo la llame cuando termine de cargar.
 window._appStart = function(){
   initFirebaseSync();
 };
+
+// Registrar Service Worker para PWA
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
 </script>
 </body>
 </html>
