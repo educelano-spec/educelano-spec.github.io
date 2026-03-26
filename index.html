@@ -616,30 +616,33 @@ let db=DFT();
 function load(){
   const d=ls();
   if(d){try{const p=JSON.parse(d);db={...DFT(),...p};['ingresos','gastos','presupuestos','metas','historial'].forEach(k=>{if(!Array.isArray(db[k]))db[k]=[];});}catch(e){}}
-  if(!db.config.mesPeriodo||db.config.mesPeriodo.length!==7) db.config.mesPeriodo=new Date().toISOString().slice(0,7);
 }
 
 function init(){
+  // Siempre corregir mesPeriodo
   if(!db.config.mesPeriodo||db.config.mesPeriodo.length!==7) db.config.mesPeriodo=mesActual();
+  // Cargar presupuestos por defecto si no hay ninguno cargado
+  if(!Array.isArray(db.presupuestos)||db.presupuestos.length===0){
+    db.presupuestos=[
+      {id:uid(),cat:'renta',    monto:3467,freq:'mensual',nota:'A$800/semana × 4.33'},
+      {id:uid(),cat:'super',    monto:1600,freq:'mensual',nota:'Compras semanales'},
+      {id:uid(),cat:'transporte',monto:800,freq:'mensual',nota:''},
+      {id:uid(),cat:'prestamo', monto:1000,freq:'mensual',nota:'Tia Mamu'},
+      {id:uid(),cat:'telefonia',monto:205, freq:'mensual',nota:'Optus'},
+      {id:uid(),cat:'educacion',monto:1800,freq:'mensual',nota:'Pago estudios 1/2'},
+      {id:uid(),cat:'clases',   monto:200, freq:'mensual',nota:'Samu Classes'},
+      {id:uid(),cat:'escuela',  monto:1232,freq:'mensual',nota:'A$3080 c/2.5m prorrateado'},
+      {id:uid(),cat:'firecamp', monto:319, freq:'mensual',nota:''},
+      {id:uid(),cat:'ahorro',   monto:750, freq:'mensual',nota:'Ahorro planificado'},
+      {id:uid(),cat:'varios',   monto:1000,freq:'mensual',nota:''},
+    ];
+    save();
+  }
   if(db.config.initialized)return;
-  // Presupuestos por defecto basados en tu situación
-  db.presupuestos=[
-    {id:uid(),cat:'renta',    monto:3467,freq:'mensual',nota:'A$800/semana × 4.33'},
-    {id:uid(),cat:'super',    monto:1600,freq:'mensual',nota:'Compras semanales'},
-    {id:uid(),cat:'transporte',monto:800,freq:'mensual',nota:''},
-    {id:uid(),cat:'prestamo', monto:1000,freq:'mensual',nota:'Tia Mamu'},
-    {id:uid(),cat:'telefonia',monto:205, freq:'mensual',nota:'Optus'},
-    {id:uid(),cat:'educacion',monto:1800,freq:'mensual',nota:'Pago estudios 1/2'},
-    {id:uid(),cat:'clases',   monto:200, freq:'mensual',nota:'Samu Classes'},
-    {id:uid(),cat:'escuela',  monto:1232,freq:'mensual',nota:'A$3080 c/2.5m prorrateado'},
-    {id:uid(),cat:'firecamp', monto:319, freq:'mensual',nota:''},
-    {id:uid(),cat:'ahorro',   monto:750, freq:'mensual',nota:'Ahorro planificado'},
-    {id:uid(),cat:'varios',   monto:1000,freq:'mensual',nota:''},
-  ];
-  db.config.mesPeriodo=mesActual();
   db.config.initialized=true;
   save();
 }
+
 
 // ══════════════════════════════════════════
 // UTILS
@@ -726,8 +729,8 @@ function addIngreso(){
   if(!desc||!monto||monto<=0){alert('Completá descripción y monto');return;}
   const fecha=document.getElementById('iFecha').value||hoy();
   const sem=document.getElementById('iSem').value;
-  const medio=document.getElementById('iMedio')?document.getElementById('iMedio').value:'transferencia';
-  db.ingresos.push({id:uid(),desc,sem,monto,fecha,medio,nota:document.getElementById('iNota').value.trim()});
+  const iMedio=document.getElementById('iMedio')?document.getElementById('iMedio').value:'transferencia';
+  db.ingresos.push({id:uid(),desc,sem,monto,fecha,medio:iMedio,nota:document.getElementById('iNota').value.trim()});
   // Diezmo automático
   const diezmo=parseFloat((monto*(db.config.diezmo/100)).toFixed(2));
   if(diezmo>0) db.gastos.push({id:uid(),desc:`🙏 Diezmo — ${desc}`,cat:'diezmo',monto:diezmo,fecha,tipo:'planificado',nota:`${db.config.diezmo}% de ${fmt(monto)}`});
@@ -1035,11 +1038,7 @@ function rHoy(){
     <div class="kcard green"><div class="kl">💚 Cobrado mes</div><div class="kv">${fmt(totalIng)}</div><div class="ks">ingresos registrados</div></div>
     <div class="kcard red"><div class="kl">💸 Gastado mes</div><div class="kv">${fmt(totalGas)}</div><div class="ks">gastos registrados</div></div>
     <div class="kcard ${caja>=0?'green':'red'}"><div class="kl">💰 Caja actual</div><div class="kv">${fmt(caja)}</div><div class="ks">cobrado − gastado</div></div>
-    <div class="kcard ${bal>=0?'blue':'amber'}"><div class="kl">${bal>=0?'✅ Va a sobrar':'⚠️ Va a faltar'}</div><div class="kv">${fmt(Math.abs(bal))}</div><div class="ks">si se paga todo el presup.</div></div>
-    ${totalTC>0?`<div class="kcard purple"><div class="kl">💳 Gastado con TC</div><div class="kv">${fmt(totalTC)}</div><div class="ks">incluido en gastos del mes</div></div>`:''}`;
-
-  // Total TC del mes
-  const totalTC=db.gastos.filter(g=>inMesActual(g.fecha)&&g.medio==='tc').reduce((s,g)=>s+g.monto,0);
+    <div class="kcard ${bal>=0?'blue':'amber'}"><div class="kl">${bal>=0?'✅ Va a sobrar':'⚠️ Va a faltar'}</div><div class="kv">${fmt(Math.abs(bal))}</div><div class="ks">si se paga todo el presup.</div></div>`;
 
   // Alerta
   const alertDiv=document.getElementById('hoyAlerta');
@@ -1098,15 +1097,13 @@ function rTabMov(){
   if(movFilt==='ing')lista=lista.filter(l=>l._t==='ing');
   if(movFilt==='gas')lista=lista.filter(l=>l._t==='gas');
   lista.sort((a,b)=>b.fecha.localeCompare(a.fecha));
-  const _MI={'tc':'💳 TC','td':'🏦 TD','transferencia':'📲','efectivo':'💵','cheque':'🏦 Cheque'};
   if(!lista.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--ink3);padding:20px">Sin movimientos este mes</td></tr>';return;}
   tb.innerHTML=lista.map(t=>{
-const _SL={sem1:'Sem 1',sem2:'Sem 2',sem3:'Sem 3',sem4:'Sem 4',quincenal:'Fortnightly',extra:'Extra'};
     const esIng=t._t==='ing';
-    const tag=esIng?`<span class="tag tag-green">${_SL[t.sem]||'Ingreso'}</span>`:t.tipo==='planificado'?`<span class="tag tag-blue">Planif.</span>`:`<span class="tag tag-red">Gasto</span>`;
+    const tag=esIng?`<span class="tag tag-green">Ingreso</span>`:t.tipo==='planificado'?`<span class="tag tag-blue">Planif.</span>`:`<span class="tag tag-red">Gasto</span>`;
     return`<tr>
       <td style="white-space:nowrap">${t.fecha}</td>
-      <td><strong>${esIng?t.desc:(CE[t.cat]||'🎀')+' '+t.desc}</strong>${t.medio&&t.medio!=='efectivo'?`<span class="tag tag-purple" style="margin-left:5px;font-size:.65rem">${(_MI||{})[t.medio]||t.medio}</span>`:''} ${!esIng&&t.medio==='tc'?'':''} ${t.nota?`<br><small style="color:var(--ink3)">${t.nota}</small>`:''}</td>
+      <td><strong>${esIng?t.desc:(CE[t.cat]||'🎀')+' '+t.desc}</strong>${t.nota?`<br><small style="color:var(--ink3)">${t.nota}</small>`:''}</td>
       <td class="hmob">${tag}</td>
       <td class="${esIng?'pos':'neg'}" style="font-weight:700;white-space:nowrap">${esIng?'+':'−'}${fmt(t.monto)}</td>
       <td style="white-space:nowrap">
