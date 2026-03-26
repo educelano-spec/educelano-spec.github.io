@@ -590,11 +590,28 @@ function startSync(){
       if(_skipNext){_skipNext=false;setStat('ok');if(!fbSynced){fbSynced=true;init();renderAll();}return;}
       db={...DFT(),...val};
       ['ingresos','gastos','presupuestos','metas','historial'].forEach(k=>{if(!Array.isArray(db[k]))db[k]=[];});
+      // Si Firebase trajo presupuestos vacíos, restaurar defaults SIN guardar en Firebase
+      if(db.presupuestos.length===0){
+        db.presupuestos=[
+          {id:uid(),cat:'renta',    monto:3467,freq:'mensual',nota:'A$800/semana × 4.33'},
+          {id:uid(),cat:'super',    monto:1600,freq:'mensual',nota:'Compras semanales'},
+          {id:uid(),cat:'transporte',monto:800,freq:'mensual',nota:''},
+          {id:uid(),cat:'prestamo', monto:1000,freq:'mensual',nota:'Tia Mamu'},
+          {id:uid(),cat:'telefonia',monto:205, freq:'mensual',nota:'Optus'},
+          {id:uid(),cat:'educacion',monto:1800,freq:'mensual',nota:'Pago estudios 1/2'},
+          {id:uid(),cat:'clases',   monto:200, freq:'mensual',nota:'Samu Classes'},
+          {id:uid(),cat:'escuela',  monto:1232,freq:'mensual',nota:'A$3080 c/2.5m prorrateado'},
+          {id:uid(),cat:'firecamp', monto:319, freq:'mensual',nota:''},
+          {id:uid(),cat:'ahorro',   monto:750, freq:'mensual',nota:'Ahorro planificado'},
+          {id:uid(),cat:'varios',   monto:1000,freq:'mensual',nota:''},
+        ];
+        save(); // guardar en Firebase para que no se pierda
+      }
       ls(JSON.stringify(db));setStat('live');
       if(fbSynced)renderAll();
     } else setStat('ok');
     if(!fbSynced){fbSynced=true;init();renderAll();}
-  },()=>{setStat('err');load();init();renderAll();});
+  },()=>{setStat('err');load();if(!Array.isArray(db.presupuestos)||db.presupuestos.length===0)init();renderAll();});
 }
 
 // ══════════════════════════════════════════
