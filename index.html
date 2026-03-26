@@ -258,8 +258,7 @@ tbody td{padding:8px 12px}
     <div class="fr">
       <div class="fg"><label>Fuente / descripción</label><input type="text" id="iDesc" placeholder="Ej: Sueldo semana 1..."></div>
       <div class="fg" style="max-width:140px"><label>Semana</label>
-        <select id="iSem"><option value="sem1">Semana 1</option><option value="sem2">Semana 2</option><option value="sem3">Semana 3</option><option value="sem4">Semana 4</option><option value="quincenal">Fortnightly (quincenal)</option>
-          <option value="extra">Extra / Variable</option></select>
+        <select id="iSem"><option value="sem1">Semana 1</option><option value="sem2">Semana 2</option><option value="sem3">Semana 3</option><option value="sem4">Semana 4</option><option value="extra">Extra / Variable</option></select>
       </div>
     </div>
     <div class="fr">
@@ -305,17 +304,7 @@ tbody td{padding:8px 12px}
         <select id="gTipo"><option value="real">Gasto real</option><option value="planificado">Pago planificado</option></select>
       </div>
     </div>
-    <div class="fr">
-        <div class="fg" style="max-width:160px"><label>Medio de pago</label>
-          <select id="gMedio">
-            <option value="efectivo">💵 Efectivo</option>
-            <option value="tc">💳 Tarjeta crédito</option>
-            <option value="td">🏦 Tarjeta débito</option>
-            <option value="transferencia">📲 Transferencia</option>
-          </select>
-        </div>
-        <div class="fg"><label>Nota (opcional)</label><input type="text" id="gNota" placeholder="Detalle..."></div>
-      </div>
+    <div class="fr"><div class="fg"><label>Nota (opcional)</label><input type="text" id="gNota" placeholder="Detalle..."></div></div>
     <div style="display:flex;gap:8px;align-items:center">
       <button class="btn btn-primary" id="btnAddGas" onclick="addGasto()">💸 Registrar gasto</button>
       <span id="msgGas" style="font-size:.78rem;color:var(--green);opacity:0;transition:opacity .3s"></span>
@@ -607,9 +596,13 @@ let db=DFT();
 function load(){
   const d=ls();
   if(d){try{const p=JSON.parse(d);db={...DFT(),...p};['ingresos','gastos','presupuestos','metas','historial'].forEach(k=>{if(!Array.isArray(db[k]))db[k]=[];});}catch(e){}}
+  // Siempre corregir mesPeriodo si está vacío o mal formado
+  if(!db.config.mesPeriodo||db.config.mesPeriodo.length!==7) db.config.mesPeriodo=new Date().toISOString().slice(0,7);
 }
 
 function init(){
+  // Siempre asegurar que mesPeriodo esté seteado correctamente
+  if(!db.config.mesPeriodo||db.config.mesPeriodo.length!==7) db.config.mesPeriodo=mesActual();
   if(db.config.initialized)return;
   // Presupuestos por defecto basados en tu situación
   db.presupuestos=[
@@ -637,7 +630,7 @@ const fmt=n=>'A$'+(parseFloat(n)||0).toLocaleString('es-AR',{minimumFractionDigi
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const hoy=()=>new Date().toISOString().split('T')[0];
 const mesActual=()=>new Date().toISOString().slice(0,7);
-const inMesActual=f=>f&&f.startsWith(db.config.mesPeriodo||mesActual());
+const inMesActual=f=>{const mes=db.config.mesPeriodo&&db.config.mesPeriodo.length===7?db.config.mesPeriodo:mesActual();return f&&f.startsWith(mes);};
 const CE={renta:'🏠',super:'🛒',telefonia:'📱',transporte:'🚗',educacion:'📚',clases:'🎓',escuela:'🏫',ahorro:'🐣',prestamo:'💸',visa:'💳',salud:'🏥',diezmo:'🙏',firecamp:'🏕️',varios:'🎀'};
 const CNOMBRE={renta:'Renta',super:'Supermercado',telefonia:'Telefonía',transporte:'Transporte',educacion:'Educación',clases:'Clases Samu',escuela:'Escuela Samu',ahorro:'Ahorro',prestamo:'Préstamo',visa:'Visa/Tarj.',salud:'Salud',diezmo:'Diezmo',firecamp:'Fire Camp',varios:'Varios'};
 
@@ -746,7 +739,6 @@ function addGasto(){
     monto,
     fecha:document.getElementById('gFecha').value||hoy(),
     tipo:document.getElementById('gTipo').value,
-    medio:document.getElementById('gMedio').value,
     nota:document.getElementById('gNota').value.trim()
   });
   save();
@@ -979,7 +971,7 @@ function importar(ev){
   r.readAsText(f);
 }
 
-function doReset(){localStorage.removeItem(KEY);db=DFT();init();closeModal('modalReset');renderAll();}
+function doReset(){localStorage.removeItem(KEY);db=DFT();db.config.mesPeriodo=mesActual();init();closeModal('modalReset');renderAll();}
 
 // ══════════════════════════════════════════
 // MODALES
@@ -1023,11 +1015,7 @@ function rHoy(){
     <div class="kcard green"><div class="kl">💚 Cobrado mes</div><div class="kv">${fmt(totalIng)}</div><div class="ks">ingresos registrados</div></div>
     <div class="kcard red"><div class="kl">💸 Gastado mes</div><div class="kv">${fmt(totalGas)}</div><div class="ks">gastos registrados</div></div>
     <div class="kcard ${caja>=0?'green':'red'}"><div class="kl">💰 Caja actual</div><div class="kv">${fmt(caja)}</div><div class="ks">cobrado − gastado</div></div>
-    <div class="kcard ${bal>=0?'blue':'amber'}"><div class="kl">${bal>=0?'✅ Va a sobrar':'⚠️ Va a faltar'}</div><div class="kv">${fmt(Math.abs(bal))}</div><div class="ks">si se paga todo el presup.</div></div>
-    ${totalTC>0?`<div class="kcard purple"><div class="kl">💳 Gastado con TC</div><div class="kv">${fmt(totalTC)}</div><div class="ks">incluido en gastos</div></div>`:''}`;
-
-  // Calcular total TC del mes
-  const totalTC=db.gastos.filter(g=>inMesActual(g.fecha)&&g.medio==='tc').reduce((s,g)=>s+g.monto,0);
+    <div class="kcard ${bal>=0?'blue':'amber'}"><div class="kl">${bal>=0?'✅ Va a sobrar':'⚠️ Va a faltar'}</div><div class="kv">${fmt(Math.abs(bal))}</div><div class="ks">si se paga todo el presup.</div></div>`;
 
   // Alerta
   const alertDiv=document.getElementById('hoyAlerta');
@@ -1089,13 +1077,10 @@ function rTabMov(){
   if(!lista.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--ink3);padding:20px">Sin movimientos este mes</td></tr>';return;}
   tb.innerHTML=lista.map(t=>{
     const esIng=t._t==='ing';
-    const semLbl=esIng&&t.sem?`<span class="tag tag-green">${(window.SEMLBL||{sem1:'Sem 1',sem2:'Sem 2',sem3:'Sem 3',sem4:'Sem 4',quincenal:'Fortnightly',extra:'Extra'})[t.sem]||t.sem}</span>`:''
-    const tag=esIng?`<span class="tag tag-green">${({sem1:'Sem 1',sem2:'Sem 2',sem3:'Sem 3',sem4:'Sem 4',quincenal:'Fortnightly',extra:'Extra'})[t.sem]||'Ingreso'}</span>`:t.tipo==='planificado'?`<span class="tag tag-blue">Planif.</span>`:`<span class="tag tag-red">Gasto</span>`;
-    const medioIcon={'tc':'💳','td':'🏦','transferencia':'📲','efectivo':'💵'};
-    const medioTag=!esIng&&t.medio&&t.medio!=='efectivo'?`<span class="tag tag-purple" style="margin-left:4px">${medioIcon[t.medio]||''} ${t.medio==='tc'?'TC':t.medio==='td'?'TD':t.medio}</span>`:'';
+    const tag=esIng?`<span class="tag tag-green">Ingreso</span>`:t.tipo==='planificado'?`<span class="tag tag-blue">Planif.</span>`:`<span class="tag tag-red">Gasto</span>`;
     return`<tr>
       <td style="white-space:nowrap">${t.fecha}</td>
-      <td><strong>${esIng?t.desc:(CE[t.cat]||'🎀')+' '+t.desc}</strong>${medioTag}${t.nota?`<br><small style="color:var(--ink3)">${t.nota}</small>`:''}</td>
+      <td><strong>${esIng?t.desc:(CE[t.cat]||'🎀')+' '+t.desc}</strong>${t.nota?`<br><small style="color:var(--ink3)">${t.nota}</small>`:''}</td>
       <td class="hmob">${tag}</td>
       <td class="${esIng?'pos':'neg'}" style="font-weight:700;white-space:nowrap">${esIng?'+':'−'}${fmt(t.monto)}</td>
       <td style="white-space:nowrap">
@@ -1191,8 +1176,7 @@ function rCierre(){
   // Barras mes actual
   const cats=calcPresupCats();
   const bDiv=document.getElementById('cierreBars');
-  const totalTCCierre=db.gastos.filter(g=>inMesActual(g.fecha)&&g.medio==='tc').reduce((s,g)=>s+g.monto,0);
-  bDiv.innerHTML=`<div style="font-size:.78rem;color:var(--ink3);margin-bottom:10px">Mes actual en curso${totalTCCierre>0?' · 💳 TC: <strong>'+fmt(totalTCCierre)+'</strong>':''}</div>`;
+  bDiv.innerHTML='<div style="font-size:.78rem;color:var(--ink3);margin-bottom:10px">Mes actual en curso</div>';
   bDiv.innerHTML+=cats.filter(c=>c.monto>0||c.gastado>0).sort((a,b)=>b.monto-a.monto).map(c=>{
     const pct=(c.gastado/Math.max(c.monto,1)*100).toFixed(0);
     const color=c.saldo<0?'var(--red)':c.pct>80?'var(--amber)':'var(--green)';
