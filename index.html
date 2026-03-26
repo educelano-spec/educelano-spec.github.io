@@ -227,6 +227,8 @@ tbody td{padding:8px 12px}
 
   <!-- Alerta principal -->
   <div id="hoyAlerta" style="margin-bottom:12px"></div>
+  <!-- Diezmo -->
+  <div id="hoyDiezmo"></div>
 
   <!-- Compromisos pendientes del mes -->
   <div class="card">
@@ -351,7 +353,7 @@ tbody td{padding:8px 12px}
 <div id="s-presup" class="sec">
   <div class="sh">
     <h2>📋 Presupuesto del mes</h2>
-    <button class="btn btn-ghost btn-sm" onclick="openModal('modalPresup')">+ Agregar categoría</button>
+    <button class="btn btn-ghost btn-sm" onclick="resetModalPresup()">+ Agregar categoría</button>
   </div>
 
   <!-- Resumen rápido -->
@@ -443,12 +445,36 @@ tbody td{padding:8px 12px}
       </div>
     </div>
     <div class="fr">
-      <div class="fg"><label>Monto mensual (AUD)</label><input type="number" id="mpMonto" placeholder="0.00" step="0.01"></div>
-      <div class="fg"><label>Frecuencia</label>
-        <select id="mpFreq"><option value="mensual">Mensual</option><option value="semanal">Semanal (×4.33)</option><option value="cada25m">Cada 2.5 meses</option></select>
+      <div class="fg"><label>Monto por pago (AUD)</label><input type="number" id="mpMonto" placeholder="0.00" step="0.01" oninput="calcPreviewPresup()"></div>
+      <div class="fg" style="max-width:155px"><label>Frecuencia</label>
+        <select id="mpFreq" onchange="calcPreviewPresup()">
+          <option value="mensual">📅 Mensual</option>
+          <option value="semanal">📅 Semanal</option>
+          <option value="quincenal">📅 Quincenal</option>
+          <option value="cada25m">📅 Cada 2.5 meses</option>
+          <option value="unico">💳 Pago único</option>
+        </select>
       </div>
     </div>
-    <div class="fr"><div class="fg"><label>Nota</label><input type="text" id="mpNota" placeholder="Ej: Optus, cuota préstamo..."></div></div>
+    <div class="fr">
+      <div class="fg" style="max-width:160px"><label>Duración</label>
+        <select id="mpDuracion" onchange="toggleCuotas()">
+          <option value="indefinido">Sin fecha fin</option>
+          <option value="cuotas">Número de cuotas</option>
+          <option value="fecha">Hasta fecha</option>
+        </select>
+      </div>
+      <div class="fg" id="mpCuotasWrap" style="display:none;max-width:120px">
+        <label>Cuotas totales</label>
+        <input type="number" id="mpCuotas" placeholder="12" min="1" step="1" oninput="calcPreviewPresup()">
+      </div>
+      <div class="fg" id="mpFechaWrap" style="display:none">
+        <label>Fecha fin</label>
+        <input type="date" id="mpFechaFin" oninput="calcPreviewPresup()">
+      </div>
+    </div>
+    <div id="mpPreview" style="display:none;background:var(--paper2);border-radius:9px;padding:10px;margin-bottom:10px;font-size:.8rem;border:1px solid var(--border)"></div>
+    <div class="fr"><div class="fg"><label>Nota</label><input type="text" id="mpNota" placeholder="Ej: Optus, Tia Mamu..."></div></div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-primary" onclick="savePresup()">Guardar</button>
       <button class="btn btn-ghost" onclick="closeModal('modalPresup')">Cancelar</button>
@@ -645,7 +671,6 @@ function init(){
   asegurarPresupuestos();
   if(!Array.isArray(db.presupuestos)||db.presupuestos.length===0){
     db.presupuestos=[
-    {id:'p01',cat:'diezmo',    monto:0,   freq:'mensual',nota:'Se calcula sobre ingresos'},
     {id:'p02',cat:'prestamo',  monto:1000,freq:'mensual',nota:'Tia Mamu'},
     {id:'p03',cat:'super',     monto:1600,freq:'mensual',nota:'Supermercado'},
     {id:'p04',cat:'telefonia', monto:205, freq:'mensual',nota:'Optus'},
@@ -692,7 +717,6 @@ function calcCaja(){
 function getPresupuestos(){
   if(Array.isArray(db.presupuestos)&&db.presupuestos.length>0) return db.presupuestos;
   return[
-    {id:'p01',cat:'diezmo',    monto:0,   freq:'mensual',nota:'Se calcula sobre ingresos'},
     {id:'p02',cat:'prestamo',  monto:1000,freq:'mensual',nota:'Tia Mamu'},
     {id:'p03',cat:'super',     monto:1600,freq:'mensual',nota:'Supermercado'},
     {id:'p04',cat:'telefonia', monto:205, freq:'mensual',nota:'Optus'},
@@ -710,7 +734,7 @@ function calcPresupCats(){
   db.gastos.filter(g=>inMesActual(g.fecha)).forEach(g=>{
     gastoPorCat[g.cat]=(gastoPorCat[g.cat]||0)+g.monto;
   });
-  return getPresupuestos().map(p=>{
+  return getPresupuestos().filter(p=>p.cat!=='diezmo').map(p=>{
     const gastado=gastoPorCat[p.cat]||0;
     const saldo=p.monto-gastado;
     const pct=p.monto>0?Math.min(100,(gastado/p.monto*100)):0;
@@ -805,6 +829,14 @@ function addGasto(){
   renderAll();
 }
 
+function pagarDiezmo(){
+  const mes=db.config.mesPeriodo||mesActual();
+  // Marcar todos los diezmos pendientes del mes como pagados
+  db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat==='diezmo'&&g.tipo!=='pagado')
+    .forEach(g=>{ g.tipo='pagado'; });
+  save();renderAll();
+}
+
 function delGasto(id){
   db.gastos=db.gastos.filter(g=>g.id!==id);
   save();renderAll();
@@ -861,15 +893,71 @@ function updateMov(){
 // ══════════════════════════════════════════
 // PRESUPUESTOS
 // ══════════════════════════════════════════
+function resetModalPresup(){
+  document.getElementById('editPresupId').value='';
+  document.getElementById('mpMonto').value='';
+  document.getElementById('mpFreq').value='mensual';
+  document.getElementById('mpDuracion').value='indefinido';
+  document.getElementById('mpCuotas').value='';
+  document.getElementById('mpFechaFin').value='';
+  document.getElementById('mpNota').value='';
+  document.getElementById('mpPreview').style.display='none';
+  toggleCuotas();
+  openModal('modalPresup');
+}
+
 function openEditPresup(id){
   const p=db.presupuestos.find(p=>p.id===id);
   if(!p)return;
   document.getElementById('editPresupId').value=id;
   document.getElementById('mpCat').value=p.cat;
-  document.getElementById('mpMonto').value=p.monto;
-  document.getElementById('mpFreq').value=p.freq;
+  document.getElementById('mpMonto').value=p.montoPorPago||p.monto;
+  document.getElementById('mpFreq').value=p.freq||'mensual';
+  document.getElementById('mpDuracion').value=p.duracion||'indefinido';
+  document.getElementById('mpCuotas').value=p.cuotas||'';
+  document.getElementById('mpFechaFin').value=p.fechaFin||'';
   document.getElementById('mpNota').value=p.nota||'';
+  toggleCuotas();
+  calcPreviewPresup();
   openModal('modalPresup');
+}
+
+function toggleCuotas(){
+  const v=document.getElementById('mpDuracion').value;
+  document.getElementById('mpCuotasWrap').style.display=v==='cuotas'?'flex':'none';
+  document.getElementById('mpFechaWrap').style.display=v==='fecha'?'flex':'none';
+  calcPreviewPresup();
+}
+
+function calcPreviewPresup(){
+  const monto=parseFloat(document.getElementById('mpMonto').value)||0;
+  const freq=document.getElementById('mpFreq').value;
+  const dur=document.getElementById('mpDuracion').value;
+  const cuotas=parseInt(document.getElementById('mpCuotas').value)||0;
+  const fechaFin=document.getElementById('mpFechaFin').value;
+  const prev=document.getElementById('mpPreview');
+  if(!monto){prev.style.display='none';return;}
+  
+  const freqLabel={mensual:'mes',semanal:'semana',quincenal:'quincena',cada25m:'2.5 meses',unico:'pago único'};
+  // Calcular equivalente mensual
+  const equiv={mensual:monto,semanal:monto*4.33,quincenal:monto*2,cada25m:monto/2.5,unico:monto};
+  const mensual=equiv[freq]||monto;
+  
+  let durTxt='';
+  let totalTxt='';
+  if(dur==='cuotas'&&cuotas>0){
+    durTxt=`${cuotas} cuotas`;
+    totalTxt=` · Total: <strong>A$${(monto*cuotas).toLocaleString('es-AR',{minimumFractionDigits:2})}</strong>`;
+  } else if(dur==='fecha'&&fechaFin){
+    const meses=Math.ceil((new Date(fechaFin)-new Date())/(30*24*3600*1000));
+    durTxt=`hasta ${new Date(fechaFin).toLocaleDateString('es-AR',{month:'long',year:'numeric'})}`;
+    totalTxt=` · ~${meses} meses`;
+  } else {
+    durTxt='indefinido';
+  }
+  
+  prev.style.display='block';
+  prev.innerHTML=`A$${monto.toLocaleString('es-AR',{minimumFractionDigits:2})} / ${freqLabel[freq]||freq} · equiv. <strong>A$${mensual.toLocaleString('es-AR',{minimumFractionDigits:2})}/mes</strong> · ${durTxt}${totalTxt}`;
 }
 
 function savePresup(){
@@ -877,14 +965,20 @@ function savePresup(){
   const cat=document.getElementById('mpCat').value;
   const monto=parseFloat(document.getElementById('mpMonto').value);
   const freq=document.getElementById('mpFreq').value;
+  const duracion=document.getElementById('mpDuracion').value;
+  const cuotas=parseInt(document.getElementById('mpCuotas').value)||0;
+  const fechaFin=document.getElementById('mpFechaFin').value||'';
   const nota=document.getElementById('mpNota').value.trim();
   if(!monto||monto<=0){alert('Ingresá un monto');return;}
-  const montoMens=freq==='semanal'?parseFloat((monto*4.33).toFixed(2)):freq==='cada25m'?parseFloat((monto/2.5).toFixed(2)):monto;
+  // Calcular equivalente mensual para los cálculos internos
+  const equiv={mensual:monto,semanal:monto*4.33,quincenal:monto*2,cada25m:monto/2.5,unico:monto};
+  const montoMens=parseFloat((equiv[freq]||monto).toFixed(2));
+  const obj={id:id||uid(),cat,monto:montoMens,montoPorPago:monto,freq,duracion,cuotas,fechaFin,nota};
   if(id){
-    const p=db.presupuestos.find(p=>p.id===id);
-    if(p){p.cat=cat;p.monto=montoMens;p.freq=freq;p.nota=nota;}
+    const idx=db.presupuestos.findIndex(p=>p.id===id);
+    if(idx>=0) db.presupuestos[idx]=obj;
   } else {
-    db.presupuestos.push({id:uid(),cat,monto:montoMens,freq,nota});
+    db.presupuestos.push(obj);
   }
   document.getElementById('editPresupId').value='';
   closeModal('modalPresup');save();renderAll();
@@ -1051,7 +1145,8 @@ function renderAll(){asegurarPresupuestos();rHeader();rHoy();rMov();rPresup();rA
 
 function rHeader(){
   const{totalIng,totalGas,caja}=calcCaja();
-  const pendTotal=totalPresupMes()-totalGas;
+  const diezPend=db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat==='diezmo'&&g.tipo!=='pagado').reduce((s,g)=>s+g.monto,0);
+  const pendTotal=totalPresupMes()-totalGas+diezPend;
   const bal=caja-Math.max(0,pendTotal);
   document.getElementById('hCaja').textContent=fmt(caja);
   document.getElementById('hPend').textContent=fmt(Math.max(0,pendTotal));
@@ -1063,7 +1158,8 @@ function rHeader(){
 function rHoy(){
   const{totalIng,totalGas,caja}=calcCaja();
   const presupTotal=totalPresupMes();
-  const pendiente=Math.max(0,presupTotal-totalGas);
+  const diezPendHoy=db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat==='diezmo'&&g.tipo!=='pagado').reduce((s,g)=>s+g.monto,0);
+  const pendiente=Math.max(0,presupTotal-totalGas+diezPendHoy);
   const bal=caja-pendiente;
   const fecha=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
   document.getElementById('hoyFecha').textContent=fecha;
@@ -1076,6 +1172,31 @@ function rHoy(){
     <div class="kcard ${caja>=0?'green':'red'}"><div class="kl">💰 Caja actual</div><div class="kv">${fmt(caja)}</div><div class="ks">cobrado − gastado</div></div>
     <div class="kcard ${bal>=0?'blue':'amber'}"><div class="kl">${bal>=0?'✅ Va a sobrar':'⚠️ Va a faltar'}</div><div class="kv">${fmt(Math.abs(bal))}</div><div class="ks">si se paga todo el presup.</div></div>
     ${totalTC>0?`<div class="kcard purple"><div class="kl">💳 Gastado con TC</div><div class="kv">${fmt(totalTC)}</div><div class="ks">incluido en gastos</div></div>`:''}`;
+
+  // ── Diezmo del mes ──
+  // Total generado automático en el mes
+  const diezmoGenerado=db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat==='diezmo'&&g.tipo!=='pagado').reduce((s,g)=>s+g.monto,0);
+  const diezmoPagado=db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat==='diezmo'&&g.tipo==='pagado').reduce((s,g)=>s+g.monto,0);
+  const diezmoTotal=diezmoGenerado+diezmoPagado;
+  const diezmoDiv=document.getElementById('hoyDiezmo');
+  if(diezmoDiv){
+    if(diezmoTotal>0){
+      diezmoDiv.innerHTML=`<div class="card" style="border-left:4px solid #7c3aed;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="card-title" style="margin-bottom:0"><span>🙏</span> Diezmo del mes</div>
+          ${diezmoGenerado>0?`<button class="btn btn-primary btn-sm" onclick="pagarDiezmo()">✅ Marcar pagado</button>`:'<span class="tag tag-green">✅ Pagado</span>'}
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:.82rem">
+          <div><div style="color:var(--ink3);font-size:.72rem">GENERADO (${db.config.diezmo||10}% ingresos)</div><div style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--accent)">${fmt(diezmoTotal)}</div></div>
+          ${diezmoPagado>0?`<div><div style="color:var(--ink3);font-size:.72rem">YA PAGADO</div><div style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--green)">${fmt(diezmoPagado)}</div></div>`:''}
+          ${diezmoGenerado>0?`<div><div style="color:var(--ink3);font-size:.72rem">PENDIENTE</div><div style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--red)">${fmt(diezmoGenerado)}</div></div>`:''}
+          <div><div style="color:var(--ink3);font-size:.72rem">DESTINO</div><div style="font-size:.82rem;font-weight:600">${db.config.iglesia||'— configurar en ⚙️'}</div></div>
+        </div>
+      </div>`;
+    } else {
+      diezmoDiv.innerHTML='';
+    }
+  }
   // Alerta
   const alertDiv=document.getElementById('hoyAlerta');
   if(bal<0){
@@ -1090,8 +1211,8 @@ function rHoy(){
   if(!Array.isArray(db.presupuestos)||db.presupuestos.length===0) db.presupuestos=getPresupuestos();
   const cats=calcPresupCats();
   const pendDiv=document.getElementById('hoyPendientes');
-  const conSaldo=cats.filter(c=>c.saldo>0).sort((a,b)=>b.saldo-a.saldo);
-  const excedidos=cats.filter(c=>c.saldo<0);
+  const conSaldo=cats.filter(c=>c.saldo>0&&c.cat!=='diezmo').sort((a,b)=>b.saldo-a.saldo);
+  const excedidos=cats.filter(c=>c.saldo<0&&c.cat!=='diezmo');
   if(!conSaldo.length&&!excedidos.length){
     pendDiv.innerHTML='<div class="empty"><div class="empty-icon">🎉</div>Todo cubierto este mes</div>';
   } else {
@@ -1101,7 +1222,24 @@ function rHoy(){
     });
     conSaldo.forEach(c=>{
       const pct=c.pct.toFixed(0);
-      pendDiv.innerHTML+=`<div class="li"><span class="li-dot" style="background:${c.pct>80?'var(--amber)':'var(--accent)'}"></span><div class="li-body"><strong>${CE[c.cat]||'🎀'} ${CNOMBRE[c.cat]}</strong><small>Gastado ${fmt(c.gastado)} de ${fmt(c.monto)} (${pct}%)</small></div><div class="li-amount neu">${fmt(c.saldo)} libre</div></div>`;
+      // Calcular cuotas pagadas si tiene configuración de cuotas
+      let cuotasTxt='';
+      if(c.duracion==='cuotas'&&c.cuotas>0){
+        // Contar pagos históricos de esta categoría (todos los meses)
+        const pagosHist=db.gastos.filter(g=>g.cat===c.cat).length;
+        const cuotasRestantes=Math.max(0,c.cuotas-pagosHist);
+        const colorCuota=cuotasRestantes<=3?'var(--red)':cuotasRestantes<=6?'var(--amber)':'var(--ink3)';
+        cuotasTxt=`<span style="font-size:.7rem;color:${colorCuota};font-weight:600;margin-left:6px">${pagosHist}/${c.cuotas} cuotas · faltan ${cuotasRestantes}</span>`;
+      } else if(c.duracion==='fecha'&&c.fechaFin){
+        const mesesRest=Math.ceil((new Date(c.fechaFin)-new Date())/(30*24*3600*1000));
+        if(mesesRest>0){
+          const colorMes=mesesRest<=2?'var(--red)':mesesRest<=4?'var(--amber)':'var(--ink3)';
+          cuotasTxt=`<span style="font-size:.7rem;color:${colorMes};font-weight:600;margin-left:6px">faltan ${mesesRest} meses</span>`;
+        } else {
+          cuotasTxt=`<span style="font-size:.7rem;color:var(--red);font-weight:600;margin-left:6px">⚠️ vencido</span>`;
+        }
+      }
+      pendDiv.innerHTML+=`<div class="li"><span class="li-dot" style="background:${c.pct>80?'var(--amber)':'var(--accent)'}"></span><div class="li-body"><strong>${CE[c.cat]||'🎀'} ${CNOMBRE[c.cat]}${cuotasTxt}</strong><small>Gastado ${fmt(c.gastado)} de ${fmt(c.monto)} (${pct}%)</small></div><div class="li-amount neu">${fmt(c.saldo)} libre</div></div>`;
     });
   }
 
@@ -1167,9 +1305,21 @@ function rPresup(){
   barsDiv.innerHTML=cats.sort((a,b)=>b.monto-a.monto).map(c=>{
     const color=c.saldo<0?'var(--red)':c.pct>80?'var(--amber)':'var(--accent)';
     const semEq=fmt(c.monto/4.33);
+    // Cuotas info
+    let cuotasInfo='';
+    if(c.duracion==='cuotas'&&c.cuotas>0){
+      const pagosHist=db.gastos.filter(g=>g.cat===c.cat).length;
+      const restantes=Math.max(0,c.cuotas-pagosHist);
+      const colQ=restantes<=3?'var(--red)':restantes<=6?'var(--amber)':'var(--ink3)';
+      cuotasInfo=`<span style="color:${colQ};font-size:.72rem;font-weight:600"> · ${pagosHist}/${c.cuotas} cuotas · faltan ${restantes}</span>`;
+    } else if(c.duracion==='fecha'&&c.fechaFin){
+      const mr=Math.ceil((new Date(c.fechaFin)-new Date())/(30*24*3600*1000));
+      const colM=mr<=2?'var(--red)':mr<=4?'var(--amber)':'var(--ink3)';
+      cuotasInfo=`<span style="color:${colM};font-size:.72rem;font-weight:600"> · ${mr>0?'faltan '+mr+' meses':'⚠️ vencido'}</span>`;
+    }
     return`<div class="pbar-wrap" style="margin-bottom:12px">
       <div class="pbar-labels">
-        <span>${CE[c.cat]||'🎀'} <strong>${CNOMBRE[c.cat]}</strong> <small style="color:var(--ink3)">≈${semEq}/sem</small></span>
+        <span>${CE[c.cat]||'🎀'} <strong>${CNOMBRE[c.cat]}</strong>${cuotasInfo} <small style="color:var(--ink3)">≈${semEq}/sem</small></span>
         <span style="color:${c.saldo<0?'var(--red)':'var(--ink3)'}">${fmt(c.gastado)} / ${fmt(c.monto)} ${c.saldo>=0?'· <strong style="color:var(--green)">'+fmt(c.saldo)+' libre</strong>':'· <strong style="color:var(--red)">excedido</strong>'}</span>
       </div>
       <div class="pbar"><div class="pbar-fill" style="width:${c.pct}%;background:${color}"></div></div>
@@ -1181,7 +1331,7 @@ function rPresup(){
   listaDiv.innerHTML=getPresupuestos().length?cats.map(c=>`
     <div class="li">
       <span class="li-dot" style="background:var(--accent)"></span>
-      <div class="li-body"><strong>${CE[c.cat]||'🎀'} ${CNOMBRE[c.cat]}</strong><small>${c.nota||c.freq} · ${fmt(c.monto/4.33)}/sem equiv.</small></div>
+      <div class="li-body"><strong>${CE[c.cat]||'🎀'} ${CNOMBRE[c.cat]}</strong><small>${c.nota||''} · ${{mensual:'Mensual',semanal:'Semanal',quincenal:'Quincenal',cada25m:'Cada 2.5m',unico:'Único'}[c.freq]||c.freq}${c.duracion==='cuotas'&&c.cuotas?' · '+c.cuotas+' cuotas':c.duracion==='fecha'&&c.fechaFin?' · hasta '+new Date(c.fechaFin).toLocaleDateString('es-AR',{month:'short',year:'numeric'}):''}</small></div>
       <div class="li-amount">${fmt(c.monto)}</div>
       <button class="btn btn-ghost btn-sm" onclick="openEditPresup('${c.id}')">✏️</button>
       <button class="btn btn-red" onclick="delPresup('${c.id}')">✕</button>
