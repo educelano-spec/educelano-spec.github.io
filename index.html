@@ -288,23 +288,9 @@ tbody td{padding:8px 12px}
     <div class="card-title"><span>💸</span> Nuevo gasto</div>
     <div class="fr">
       <div class="fg"><label>Descripción</label><input type="text" id="gDesc" placeholder="Ej: Woolworths, nafta..."></div>
-      <div class="fg" style="max-width:170px"><label>Categoría</label>
-        <select id="gCat" onchange="mostrarSaldoCat()">
-          <option value="renta">🏠 Renta</option>
-          <option value="super">🛒 Supermercado</option>
-          <option value="telefonia">📱 Telefonía</option>
-          <option value="transporte">🚗 Transporte</option>
-          <option value="educacion">📚 Educación</option>
-          <option value="clases">🎓 Clases Samu</option>
-          <option value="escuela">🏫 Escuela Samu</option>
-          <option value="ahorro">🐣 Ahorro</option>
-          <option value="prestamo">💸 Préstamo</option>
-          <option value="visa">💳 Visa/Tarjeta</option>
-          <option value="salud">🏥 Salud</option>
-          <option value="diezmo">🙏 Diezmo</option>
-          <option value="firecamp">🏕️ Fire Camp</option>
-          <option value="varios">🎀 Varios</option>
-        </select>
+      <div class="fg" style="max-width:200px"><label>Categoría</label>
+        <input type="text" id="gCat" placeholder="Ej: Supermercado..." list="catGastoSugeridas" oninput="mostrarSaldoCat()">
+        <datalist id="catGastoSugeridas"></datalist>
       </div>
     </div>
     <div id="saldoCatInfo" style="display:none;margin-bottom:8px"></div>
@@ -436,16 +422,12 @@ tbody td{padding:8px 12px}
     <div class="modal-title">📋 Categoría de presupuesto</div>
     <input type="hidden" id="editPresupId">
     <div class="fr">
-      <div class="fg"><label>Categoría</label>
-        <select id="mpCat">
-          <option value="renta">🏠 Renta</option><option value="super">🛒 Supermercado</option>
-          <option value="telefonia">📱 Telefonía</option><option value="transporte">🚗 Transporte</option>
-          <option value="educacion">📚 Educación</option><option value="clases">🎓 Clases Samu</option>
-          <option value="escuela">🏫 Escuela Samu</option><option value="ahorro">🐣 Ahorro</option>
-          <option value="prestamo">💸 Préstamo</option><option value="visa">💳 Visa/Tarjeta</option>
-          <option value="salud">🏥 Salud</option><option value="diezmo">🙏 Diezmo</option>
-          <option value="firecamp">🏕️ Fire Camp</option><option value="varios">🎀 Varios</option>
-        </select>
+      <div class="fg" style="max-width:56px"><label>Emoji</label>
+        <input type="text" id="mpEmoji" placeholder="🎀" maxlength="2" style="text-align:center;font-size:1.2rem">
+      </div>
+      <div class="fg"><label>Nombre de categoría</label>
+        <input type="text" id="mpNombre" placeholder="Ej: Gimnasio, Netflix, Médico..." list="catSugeridas">
+        <datalist id="catSugeridas"></datalist>
       </div>
     </div>
     <div class="fr">
@@ -518,16 +500,8 @@ tbody td{padding:8px 12px}
       <div class="fg"><label>Fecha</label><input type="date" id="editMovFecha"></div>
     </div>
     <div class="fr"><div class="fg"><label>Categoría</label>
-      <select id="editMovCat">
-        <option value="">— (ingreso) —</option>
-        <option value="renta">🏠 Renta</option><option value="super">🛒 Supermercado</option>
-        <option value="telefonia">📱 Telefonía</option><option value="transporte">🚗 Transporte</option>
-        <option value="educacion">📚 Educación</option><option value="clases">🎓 Clases Samu</option>
-        <option value="escuela">🏫 Escuela Samu</option><option value="ahorro">🐣 Ahorro</option>
-        <option value="prestamo">💸 Préstamo</option><option value="visa">💳 Visa/Tarjeta</option>
-        <option value="salud">🏥 Salud</option><option value="diezmo">🙏 Diezmo</option>
-        <option value="firecamp">🏕️ Fire Camp</option><option value="varios">🎀 Varios</option>
-      </select>
+      <input type="text" id="editMovCat" placeholder="Categoría..." list="catEditSugeridas">
+      <datalist id="catEditSugeridas"></datalist>
     </div></div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-primary" onclick="updateMov()">Guardar</button>
@@ -794,6 +768,61 @@ function filtMov(f){
   rTabMov();
 }
 
+
+// ── Helpers de categorías dinámicas ──
+function slugCat(nombre){
+  return nombre.trim().toLowerCase()
+    .replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i')
+    .replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/ñ/g,'n')
+    .replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+}
+
+function getAllCats(){
+  // Categorías hardcodeadas base
+  const BASE=[
+    {key:'renta',label:'Renta',emoji:'🏠'},
+    {key:'super',label:'Supermercado',emoji:'🛒'},
+    {key:'telefonia',label:'Telefonía',emoji:'📱'},
+    {key:'transporte',label:'Transporte',emoji:'🚗'},
+    {key:'educacion',label:'Educación',emoji:'📚'},
+    {key:'clases',label:'Clases Samu',emoji:'🎓'},
+    {key:'ahorro',label:'Ahorro',emoji:'🐣'},
+    {key:'prestamo',label:'Préstamo',emoji:'💸'},
+    {key:'visa',label:'Visa/Tarjeta',emoji:'💳'},
+    {key:'salud',label:'Salud',emoji:'🏥'},
+    {key:'firecamp',label:'Fire Camp',emoji:'🏕️'},
+    {key:'varios',label:'Varios',emoji:'🎀'},
+  ];
+  // Agregar categorías personalizadas de presupuestos
+  const custom=db.presupuestos
+    .filter(p=>p.nombre&&!BASE.find(b=>b.key===p.cat))
+    .map(p=>({key:p.cat,label:p.nombre,emoji:p.emoji||'🎀'}));
+  // Agregar cats de gastos existentes que no estén en la lista
+  const gasKeys=[...new Set(db.gastos.map(g=>g.cat))];
+  const extra=gasKeys
+    .filter(k=>k&&!BASE.find(b=>b.key===k)&&!custom.find(x=>x.key===k))
+    .map(k=>({key:k,label:k,emoji:'🎀'}));
+  return [...BASE,...custom,...extra];
+}
+
+function getCatEmoji(key){
+  const cats=getAllCats();
+  const found=cats.find(c=>c.key===key);
+  return found?found.emoji:(CE[key]||'🎀');
+}
+
+function getCatLabel(key){
+  const cats=getAllCats();
+  const found=cats.find(c=>c.key===key);
+  return found?found.label:(CNOMBRE[key]||key);
+}
+
+function fillCatDatalist(datalistId){
+  const dl=document.getElementById(datalistId);
+  if(!dl)return;
+  dl.innerHTML=getAllCats().map(c=>`<option value="${c.label}">${c.emoji} ${c.label}</option>`).join('');
+}
+
 // ══════════════════════════════════════════
 // CRUD INGRESOS
 // ══════════════════════════════════════════
@@ -829,9 +858,11 @@ function addGasto(){
   const desc=document.getElementById('gDesc').value.trim();
   const monto=parseFloat(document.getElementById('gMonto').value);
   if(!desc||!monto||monto<=0){alert('Completá descripción y monto');return;}
+  const gCatNombre=document.getElementById('gCat').value.trim();
+  const gCatKey=slugCat(gCatNombre)||'varios';
   db.gastos.push({
     id:uid(),desc,
-    cat:document.getElementById('gCat').value,
+    cat:gCatKey,
     monto,
     fecha:document.getElementById('gFecha').value||hoy(),
     tipo:document.getElementById('gTipo').value,
@@ -1029,6 +1060,8 @@ function updateMov(){
 // ══════════════════════════════════════════
 function resetModalPresup(){
   document.getElementById('editPresupId').value='';
+  document.getElementById('mpNombre').value='';
+  document.getElementById('mpEmoji').value='';
   document.getElementById('mpMonto').value='';
   document.getElementById('mpFreq').value='mensual';
   document.getElementById('mpDuracion').value='indefinido';
@@ -1044,7 +1077,8 @@ function openEditPresup(id){
   const p=db.presupuestos.find(p=>p.id===id);
   if(!p)return;
   document.getElementById('editPresupId').value=id;
-  document.getElementById('mpCat').value=p.cat;
+  document.getElementById('mpNombre').value=p.nombre||getCatLabel(p.cat);
+  document.getElementById('mpEmoji').value=p.emoji||getCatEmoji(p.cat);
   document.getElementById('mpMonto').value=p.montoPorPago||p.monto;
   document.getElementById('mpFreq').value=p.freq||'mensual';
   document.getElementById('mpDuracion').value=p.duracion||'indefinido';
@@ -1096,7 +1130,10 @@ function calcPreviewPresup(){
 
 function savePresup(){
   const id=document.getElementById('editPresupId').value;
-  const cat=document.getElementById('mpCat').value;
+  const nombre=document.getElementById('mpNombre').value.trim();
+  const emoji=document.getElementById('mpEmoji').value.trim()||'🎀';
+  if(!nombre){alert('Escribí el nombre de la categoría');return;}
+  const cat=slugCat(nombre);
   const monto=parseFloat(document.getElementById('mpMonto').value);
   const freq=document.getElementById('mpFreq').value;
   const duracion=document.getElementById('mpDuracion').value;
@@ -1104,10 +1141,9 @@ function savePresup(){
   const fechaFin=document.getElementById('mpFechaFin').value||'';
   const nota=document.getElementById('mpNota').value.trim();
   if(!monto||monto<=0){alert('Ingresá un monto');return;}
-  // Calcular equivalente mensual para los cálculos internos
   const equiv={mensual:monto,semanal:monto*4.33,quincenal:monto*2,cada25m:monto/2.5,unico:monto};
   const montoMens=parseFloat((equiv[freq]||monto).toFixed(2));
-  const obj={id:id||uid(),cat,monto:montoMens,montoPorPago:monto,freq,duracion,cuotas,fechaFin,nota};
+  const obj={id:id||uid(),cat,nombre,emoji,monto:montoMens,montoPorPago:monto,freq,duracion,cuotas,fechaFin,nota};
   if(id){
     const idx=db.presupuestos.findIndex(p=>p.id===id);
     if(idx>=0) db.presupuestos[idx]=obj;
@@ -1276,7 +1312,12 @@ function flashMsg(id,msg){
 // ══════════════════════════════════════════
 // RENDER
 // ══════════════════════════════════════════
-function renderAll(){asegurarPresupuestos();rHeader();rHoy();rMov();rPresup();rAhorro();rCierre();rCfg();}
+function renderAll(){
+  asegurarPresupuestos();
+  // Llenar datalists de categorías
+  ['catSugeridas','catGastoSugeridas','catEditSugeridas'].forEach(id=>fillCatDatalist(id));
+  rHeader();rHoy();rMov();rPresup();rAhorro();rCierre();rCfg();
+}
 
 function rHeader(){
   const{totalIng,totalGas,caja}=calcCaja();
