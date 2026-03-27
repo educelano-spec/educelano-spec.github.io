@@ -844,6 +844,34 @@ function addGasto(){
   renderAll();
 }
 
+function showMedioModal(tipo, medio){
+  const medioMap={'tc':'💳 Tarjeta crédito','td':'🏦 Tarjeta débito','efectivo':'💵 Efectivo','transferencia':'📲 Transferencia','cheque':'🏦 Cheque'};
+  const esGas=tipo==='gas';
+  document.getElementById('kpiModalTitulo').textContent=(esGas?'💸 Gastos':'💚 Ingresos')+' — '+(medioMap[medio]||medio);
+  const body=document.getElementById('kpiModalBody');
+  if(esGas){
+    const items=db.gastos.filter(g=>inMesActual(g.fecha)&&(g.medio||'efectivo')===medio&&g.cat!=='diezmo').sort((a,b)=>b.fecha.localeCompare(a.fecha));
+    if(!items.length){body.innerHTML='<div class="empty">Sin gastos con este medio</div>';openModal('modalKpi');return;}
+    body.innerHTML=items.map(g=>`
+      <div class="li">
+        <span class="li-dot" style="background:var(--red)"></span>
+        <div class="li-body"><strong>${CE[g.cat]||'🎀'} ${g.desc}</strong><small>${g.fecha} · ${CNOMBRE[g.cat]||g.cat}</small></div>
+        <div class="li-amount neg">−${fmt(g.monto)}</div>
+      </div>`).join('')+`<div style="text-align:right;padding:8px 12px 0;font-weight:700;color:var(--red)">Total: −${fmt(items.reduce((s,g)=>s+g.monto,0))}</div>`;
+  } else {
+    const items=db.ingresos.filter(i=>inMesActual(i.fecha)&&(i.medio||'transferencia')===medio).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+    if(!items.length){body.innerHTML='<div class="empty">Sin ingresos con este medio</div>';openModal('modalKpi');return;}
+    const semLbl={sem1:'Semana 1',sem2:'Semana 2',sem3:'Semana 3',sem4:'Semana 4',quincenal:'Fortnightly',extra:'Extra'};
+    body.innerHTML=items.map(i=>`
+      <div class="li">
+        <span class="li-dot" style="background:var(--green)"></span>
+        <div class="li-body"><strong>${i.desc}</strong><small>${i.fecha} · ${semLbl[i.sem]||''}</small></div>
+        <div class="li-amount pos">+${fmt(i.monto)}</div>
+      </div>`).join('')+`<div style="text-align:right;padding:8px 12px 0;font-weight:700;color:var(--green)">Total: +${fmt(items.reduce((s,i)=>s+i.monto,0))}</div>`;
+  }
+  openModal('modalKpi');
+}
+
 function showKpiModal(tipo){
   const titulo={ing:'💚 Ingresos del mes',gas:'💸 Gastos del mes',caja:'💰 Caja actual',tc:'💳 Gastos con Tarjeta de Crédito',presup:'📋 Presupuesto del mes'};
   document.getElementById('kpiModalTitulo').textContent=titulo[tipo]||'Detalle';
@@ -1345,7 +1373,22 @@ function rHoy(){
           cuotasTxt=`<span style="font-size:.7rem;color:var(--red);font-weight:600;margin-left:6px">⚠️ vencido</span>`;
         }
       }
-      pendDiv.innerHTML+=`<div class="li"><span class="li-dot" style="background:${c.pct>80?'var(--amber)':'var(--accent)'}"></span><div class="li-body"><strong>${CE[c.cat]||'🎀'} ${CNOMBRE[c.cat]}${cuotasTxt}</strong><small>Gastado ${fmt(c.gastado)} de ${fmt(c.monto)} (${pct}%)</small></div><div class="li-amount neu">${fmt(c.saldo)} libre</div></div>`;
+      const barColor=c.pct>=100?'var(--red)':c.pct>80?'var(--amber)':'var(--green)';
+      pendDiv.innerHTML+=`<div style="padding:10px 12px;border-radius:9px;background:var(--paper);border:1px solid var(--border);margin-bottom:5px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <div><strong style="font-size:.84rem">${CE[c.cat]||'🎀'} ${CNOMBRE[c.cat]}${cuotasTxt}</strong></div>
+          <div style="font-size:.82rem;font-weight:700;color:${c.saldo<=0?'var(--red)':'var(--ink2)'}">
+            ${c.saldo>0?fmt(c.saldo)+' libre':'⚠️ excedido '+fmt(Math.abs(c.saldo))}
+          </div>
+        </div>
+        <div style="height:6px;background:var(--paper3);border-radius:4px;overflow:hidden;margin-bottom:3px">
+          <div style="height:100%;width:${Math.min(100,parseFloat(pct))}%;background:${barColor};border-radius:4px;transition:width .4s"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.71rem;color:var(--ink3)">
+          <span>Pagado: ${fmt(c.gastado)}</span>
+          <span>Total: ${fmt(c.monto)} · ${pct}%</span>
+        </div>
+      </div>`;
     });
   }
 
@@ -1508,12 +1551,14 @@ function rCierre(){
   const medDiv=document.getElementById('cierreMedios');
   if(medDiv){
     const gasRows=Object.entries(gastosPorMedio).sort((a,b)=>b[1]-a[1]).map(([m,v])=>
-      `<div class="li"><span class="li-dot" style="background:var(--red)"></span><div class="li-body"><strong>${medioMap[m]||m}</strong><small>gastos</small></div><div class="li-amount neg">−${fmt(v)}</div></div>`
+      `<div class="li" style="cursor:pointer" onclick="showMedioModal('gas','${`${m}`}')">
+        <span class="li-dot" style="background:var(--red)"></span>
+        <div class="li-body"><strong>${medioMap[m]||m}</strong><small>gastos · toca para ver detalle</small></div>
+        <div class="li-amount neg">−${fmt(v)}</div>
+        <span style="font-size:.8rem;color:var(--ink3);margin-left:4px">›</span>
+      </div>`
     ).join('');
-    const ingRows=Object.entries(ingPorMedio).sort((a,b)=>b[1]-a[1]).map(([m,v])=>
-      `<div class="li"><span class="li-dot" style="background:var(--green)"></span><div class="li-body"><strong>${medioMap[m]||m}</strong><small>ingresos</small></div><div class="li-amount pos">+${fmt(v)}</div></div>`
-    ).join('');
-    medDiv.innerHTML=gasRows+ingRows||'<div class="empty">Sin movimientos</div>';
+    medDiv.innerHTML=gasRows||'<div class="empty">Sin gastos este mes</div>';
   }
 
   // Barras mes actual
