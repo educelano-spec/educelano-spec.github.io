@@ -195,7 +195,7 @@ tbody td{padding:8px 12px}
   </div>
   <div class="hdr-kpis">
     <div class="hkpi"><div class="hkpi-l">💰 Caja</div><div class="hkpi-v" id="hCaja">A$0</div></div>
-    <div class="hkpi"><div class="hkpi-l">⏳ Pendiente</div><div class="hkpi-v" id="hPend">A$0</div></div>
+    <div class="hkpi"><div class="hkpi-l">📋 Presupuestado</div><div class="hkpi-v" id="hPend">A$0</div></div>
     <div class="hkpi"><div class="hkpi-l">📊 Balance</div><div class="hkpi-v" id="hBal">A$0</div></div>
   </div>
 </div>
@@ -722,9 +722,8 @@ function semanasHasta(f){
 }
 
 function calcCaja(){
-  const mes=db.config.mesPeriodo||mesActual();
   const totalIng=db.ingresos.filter(i=>inMesActual(i.fecha)).reduce((s,i)=>s+i.monto,0);
-  const totalGas=db.gastos.filter(g=>inMesActual(g.fecha)).reduce((s,g)=>s+g.monto,0);
+  const totalGas=db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat!=='diezmo').reduce((s,g)=>s+g.monto,0);
   return{totalIng,totalGas,caja:totalIng-totalGas};
 }
 
@@ -757,7 +756,9 @@ function calcPresupCats(){
 }
 
 function totalPresupMes(){
-  return getPresupuestos().reduce((s,p)=>s+p.monto,0);
+  const fijo=getPresupuestos().filter(p=>p.cat!=='diezmo').reduce((s,p)=>s+p.monto,0);
+  const diezmo=db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat==='diezmo').reduce((s,g)=>s+g.monto,0);
+  return fijo+diezmo;
 }
 
 // ══════════════════════════════════════════
@@ -844,7 +845,7 @@ function addGasto(){
 }
 
 function showKpiModal(tipo){
-  const titulo={ing:'💚 Ingresos del mes',gas:'💸 Gastos del mes',caja:'💰 Caja actual',tc:'💳 Gastos con Tarjeta de Crédito'};
+  const titulo={ing:'💚 Ingresos del mes',gas:'💸 Gastos del mes',caja:'💰 Caja actual',tc:'💳 Gastos con Tarjeta de Crédito',presup:'📋 Presupuesto del mes'};
   document.getElementById('kpiModalTitulo').textContent=titulo[tipo]||'Detalle';
   const body=document.getElementById('kpiModalBody');
   const mes=db.config.mesPeriodo||mesActual();
@@ -862,8 +863,31 @@ function showKpiModal(tipo){
       </div>`).join('')+`<div style="text-align:right;padding:10px 12px 0;font-weight:700;color:var(--green)">Total: +${fmt(items.reduce((s,i)=>s+i.monto,0))}</div>`;
   }
 
+  else if(tipo==='presup'){
+    const cats=calcPresupCats();
+    const diezmoMes=db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat==='diezmo').reduce((s,g)=>s+g.monto,0);
+    const total=totalPresupMes();
+    let rows=cats.filter(p=>p.monto>0).sort((a,b)=>b.monto-a.monto).map(p=>`
+      <div class="li">
+        <span class="li-dot" style="background:var(--accent)"></span>
+        <div class="li-body"><strong>${CE[p.cat]||'🎀'} ${CNOMBRE[p.cat]}</strong>
+          <small>${p.nota||''} · ${{mensual:'Mensual',semanal:'Semanal',quincenal:'Quincenal',cada25m:'Cada 2.5m',unico:'Único'}[p.freq]||p.freq}</small>
+        </div>
+        <div class="li-amount neu">${fmt(p.monto)}</div>
+      </div>`).join('');
+    if(diezmoMes>0){
+      rows+=`<div class="li">
+        <span class="li-dot" style="background:#7c3aed"></span>
+        <div class="li-body"><strong>🙏 Diezmo</strong><small>10% de ingresos del mes · dinámico</small></div>
+        <div class="li-amount" style="color:var(--accent)">${fmt(diezmoMes)}</div>
+      </div>`;
+    }
+    rows+=`<div style="text-align:right;padding:10px 12px 0;font-weight:700;color:var(--accent)">Total presupuestado: ${fmt(total)}</div>`;
+    body.innerHTML=rows;
+  }
+
   else if(tipo==='gas'){
-    const items=db.gastos.filter(g=>inMesActual(g.fecha)).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+    const items=db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat!=='diezmo').sort((a,b)=>b.fecha.localeCompare(a.fecha));
     if(!items.length){body.innerHTML='<div class="empty">Sin gastos este mes</div>';openModal('modalKpi');return;}
     const medioIcon={'tc':'💳','td':'🏦','transferencia':'📲','efectivo':'💵'};
     body.innerHTML=items.map(g=>`
@@ -875,14 +899,26 @@ function showKpiModal(tipo){
   }
 
   else if(tipo==='caja'){
-    const ings=db.ingresos.filter(i=>inMesActual(i.fecha));
-    const gas=db.gastos.filter(g=>inMesActual(g.fecha));
-    const tIng=ings.reduce((s,i)=>s+i.monto,0);
-    const tGas=gas.reduce((s,g)=>s+g.monto,0);
+    const tIng=db.ingresos.filter(i=>inMesActual(i.fecha)).reduce((s,i)=>s+i.monto,0);
+    const tGas=db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat!=='diezmo').reduce((s,g)=>s+g.monto,0);
+    const caja=tIng-tGas;
+    // Detalle de gastos reales
+    const gasItems=db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat!=='diezmo').sort((a,b)=>b.fecha.localeCompare(a.fecha));
+    const gasRows=gasItems.map(g=>`
+      <div class="li">
+        <span class="li-dot" style="background:var(--red)"></span>
+        <div class="li-body"><strong>${CE[g.cat]||'🎀'} ${g.desc}</strong><small>${g.fecha} · ${CNOMBRE[g.cat]||g.cat}</small></div>
+        <div class="li-amount neg">−${fmt(g.monto)}</div>
+      </div>`).join('');
     body.innerHTML=`
-      <div class="kcard green" style="margin-bottom:8px"><div class="kl">💚 Total ingresos</div><div class="kv">+${fmt(tIng)}</div></div>
-      <div class="kcard red" style="margin-bottom:8px"><div class="kl">💸 Total gastos</div><div class="kv">−${fmt(tGas)}</div></div>
-      <div class="kcard ${tIng-tGas>=0?'blue':'red'}"><div class="kl">💰 Diferencia</div><div class="kv">${fmt(tIng-tGas)}</div></div>`;
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <div class="kcard green" style="flex:1"><div class="kl">💚 Cobrado</div><div class="kv">+${fmt(tIng)}</div></div>
+        <div class="kcard red" style="flex:1"><div class="kl">💸 Gastado real</div><div class="kv">−${fmt(tGas)}</div></div>
+        <div class="kcard ${caja>=0?'blue':'red'}" style="flex:1"><div class="kl">💰 En mano</div><div class="kv">${fmt(caja)}</div></div>
+      </div>
+      <div style="font-size:.75rem;color:var(--ink3);margin-bottom:6px;font-weight:600">DETALLE GASTOS REALES</div>
+      ${gasRows||'<div class="empty">Sin gastos reales este mes</div>'}
+      <div style="text-align:right;padding:8px 12px 0;font-weight:700;color:var(--red)">Total gastado: −${fmt(tGas)}</div>`;
   }
 
   else if(tipo==='tc'){
@@ -1216,10 +1252,10 @@ function renderAll(){asegurarPresupuestos();rHeader();rHoy();rMov();rPresup();rA
 
 function rHeader(){
   const{totalIng,totalGas,caja}=calcCaja();
-  const pendTotal=totalPresupMes()-totalGas;
-  const bal=caja-Math.max(0,pendTotal);
+  const presupTotal=totalPresupMes();
+  const bal=totalIng-presupTotal; // ¿los ingresos cubren lo presupuestado?
   document.getElementById('hCaja').textContent=fmt(caja);
-  document.getElementById('hPend').textContent=fmt(Math.max(0,pendTotal));
+  document.getElementById('hPend').textContent=fmt(presupTotal);
   document.getElementById('hBal').textContent=fmt(bal);
   document.getElementById('hCaja').style.color=caja>=0?'#6ee7b7':'#fca5a5';
   document.getElementById('hBal').style.color=bal>=0?'#6ee7b7':'#fca5a5';
@@ -1237,9 +1273,10 @@ function rHoy(){
   // KPIs
   document.getElementById('hoyKpis').innerHTML=`
     <div class="kcard green" style="cursor:pointer" onclick="showKpiModal('ing')"><div class="kl">💚 Cobrado mes</div><div class="kv">${fmt(totalIng)}</div><div class="ks">toca para ver detalle</div></div>
+    <div class="kcard purple" style="cursor:pointer" onclick="showKpiModal('presup')"><div class="kl">📋 Presupuestado mes</div><div class="kv">${fmt(presupTotal)}</div><div class="ks">toca para ver detalle</div></div>
+    <div class="kcard ${bal>=0?'blue':'red'}"><div class="kl">${bal>=0?'✅ Va a sobrar':'⚠️ Va a faltar'}</div><div class="kv">${fmt(Math.abs(bal))}</div><div class="ks">cobrado vs presupuestado</div></div>
+    <div class="kcard ${caja>=0?'green':'amber'}" style="cursor:pointer" onclick="showKpiModal('caja')"><div class="kl">💰 En mano ahora</div><div class="kv">${fmt(caja)}</div><div class="ks">cobrado − gastado real</div></div>
     <div class="kcard red" style="cursor:pointer" onclick="showKpiModal('gas')"><div class="kl">💸 Gastado mes</div><div class="kv">${fmt(totalGas)}</div><div class="ks">toca para ver detalle</div></div>
-    <div class="kcard ${caja>=0?'green':'red'}" style="cursor:pointer" onclick="showKpiModal('caja')"><div class="kl">💰 Caja actual</div><div class="kv">${fmt(caja)}</div><div class="ks">cobrado − gastado</div></div>
-    <div class="kcard ${bal>=0?'blue':'amber'}"><div class="kl">${bal>=0?'✅ Va a sobrar':'⚠️ Va a faltar'}</div><div class="kv">${fmt(Math.abs(bal))}</div><div class="ks">si se paga todo el presup.</div></div>
     ${totalTC>0?`<div class="kcard purple" style="cursor:pointer" onclick="showKpiModal('tc')"><div class="kl">💳 Gastado con TC</div><div class="kv">${fmt(totalTC)}</div><div class="ks">toca para ver detalle</div></div>`:''}`;
 
   // ── Diezmo del mes ──
@@ -1267,12 +1304,13 @@ function rHoy(){
   }
   // Alerta
   const alertDiv=document.getElementById('hoyAlerta');
+  const gastadoPct=presupTotal>0?(totalGas/presupTotal*100).toFixed(0):0;
   if(bal<0){
-    alertDiv.innerHTML=`<div class="alert alert-red">🚨 Con los ingresos actuales, van a faltar <strong>${fmt(Math.abs(bal))}</strong> para cubrir todos los compromisos del mes. Necesitás generar más ingresos.</div>`;
+    alertDiv.innerHTML=`<div class="alert alert-red">🚨 Los ingresos de este mes (<strong>${fmt(totalIng)}</strong>) no alcanzan para cubrir el presupuesto (<strong>${fmt(presupTotal)}</strong>). Faltan <strong>${fmt(Math.abs(bal))}</strong>.</div>`;
   } else if(bal<1000){
-    alertDiv.innerHTML=`<div class="alert alert-amber">⚠️ Margen ajustado: solo <strong>${fmt(bal)}</strong> de superávit si se paga todo. Cuidado con gastos no planificados.</div>`;
+    alertDiv.innerHTML=`<div class="alert alert-amber">⚠️ Margen ajustado: solo <strong>${fmt(bal)}</strong> de diferencia entre lo cobrado y lo presupuestado. Gastado hasta ahora: ${gastadoPct}%.</div>`;
   } else {
-    alertDiv.innerHTML=`<div class="alert alert-green">✅ Bien encaminado. Si cobrás según lo esperado, vas a tener <strong>${fmt(bal)}</strong> de margen este mes.</div>`;
+    alertDiv.innerHTML=`<div class="alert alert-green">✅ Los ingresos del mes cubren el presupuesto. Superávit de <strong>${fmt(bal)}</strong>. Gastado hasta ahora: ${gastadoPct}% del presupuesto.</div>`;
   }
 
   // Por pagar
