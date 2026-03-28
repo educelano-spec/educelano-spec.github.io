@@ -206,6 +206,7 @@ tbody td{padding:8px 12px}
   <button class="ntab" onclick="ST('mov')">📥 Movimientos</button>
   <button class="ntab" onclick="ST('presup')">📋 Presupuesto</button>
   <button class="ntab" onclick="ST('ahorro')">🐣 Ahorro</button>
+  <button class="ntab" onclick="ST('detalle')">🔍 Detalle</button>
   <button class="ntab" onclick="ST('cierre')">📊 Cierre</button>
   <button class="ntab" onclick="ST('cfg')">⚙️ Config</button>
 </div>
@@ -366,6 +367,14 @@ tbody td{padding:8px 12px}
   </div>
   <div id="ahorroResumen" class="g2" style="margin-bottom:12px"></div>
   <div id="ahorroLista"></div>
+</div>
+
+
+<!-- ══ DETALLE ══ -->
+<div id="s-detalle" class="sec">
+  <div class="sh"><h2>🔍 Presupuestado vs Real</h2></div>
+  <div class="g2" id="detalleResumen" style="margin-bottom:12px"></div>
+  <div id="detalleLista"></div>
 </div>
 
 <!-- ══ CIERRE ══ -->
@@ -549,6 +558,7 @@ tbody td{padding:8px 12px}
   <button class="mob-btn" onclick="ST('mov')" id="mb-mov"><span class="mob-ico">📥</span><span class="mob-lbl">Movim.</span></button>
   <button class="mob-btn" onclick="ST('presup')" id="mb-presup"><span class="mob-ico">📋</span><span class="mob-lbl">Presup.</span></button>
   <button class="mob-btn" onclick="ST('ahorro')" id="mb-ahorro"><span class="mob-ico">🐣</span><span class="mob-lbl">Ahorro</span></button>
+  <button class="mob-btn" onclick="ST('detalle')" id="mb-detalle"><span class="mob-ico">🔍</span><span class="mob-lbl">Detalle</span></button>
   <button class="mob-btn" onclick="ST('cierre')" id="mb-cierre"><span class="mob-ico">📊</span><span class="mob-lbl">Cierre</span></button>
   <button class="mob-btn" onclick="ST('cfg')" id="mb-cfg"><span class="mob-ico">⚙️</span><span class="mob-lbl">Config</span></button>
 </div>
@@ -738,7 +748,7 @@ function totalPresupMes(){
 // ══════════════════════════════════════════
 // NAV
 // ══════════════════════════════════════════
-const TABS=['hoy','mov','presup','ahorro','cierre','cfg'];
+const TABS=['hoy','mov','presup','ahorro','detalle','cierre','cfg'];
 function ST(t){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));
@@ -873,6 +883,33 @@ function addGasto(){
   flashMsg('msgGas','✅ Gasto registrado');
   ['gDesc','gMonto','gNota'].forEach(id=>document.getElementById(id).value='');
   renderAll();
+}
+
+function showCatModal(cat){
+  const label=getCatLabel(cat);
+  const emoji=getCatEmoji(cat);
+  document.getElementById('kpiModalTitulo').textContent=emoji+' '+label;
+  const body=document.getElementById('kpiModalBody');
+  const items=db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat===cat).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const presup=db.presupuestos.find(p=>p.cat===cat);
+  const total=items.reduce((s,g)=>s+g.monto,0);
+  const medioIcon={'tc':'💳','td':'🏦','transferencia':'📲','efectivo':'💵','cheque':'🏦'};
+  const resumen=presup?`<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+    <div class="kcard purple" style="flex:1"><div class="kl">📋 Presupuestado</div><div class="kv">${fmt(presup.monto)}</div></div>
+    <div class="kcard red" style="flex:1"><div class="kl">💸 Gastado</div><div class="kv">${fmt(total)}</div></div>
+    <div class="kcard ${presup.monto-total>=0?'green':'red'}" style="flex:1"><div class="kl">${presup.monto-total>=0?'✅ Libre':'⚠️ Excedido'}</div><div class="kv">${fmt(Math.abs(presup.monto-total))}</div></div>
+  </div>`:`<div class="alert alert-amber" style="margin-bottom:10px">Sin presupuesto configurado para esta categoría</div>`;
+  if(!items.length){
+    body.innerHTML=resumen+'<div class="empty">Sin movimientos este mes en esta categoría</div>';
+    openModal('modalKpi');return;
+  }
+  body.innerHTML=resumen+items.map(g=>`
+    <div class="li">
+      <span class="li-dot" style="background:var(--red)"></span>
+      <div class="li-body"><strong>${g.desc}</strong><small>${g.fecha}${g.medio?' · '+( medioIcon[g.medio]||g.medio):''}</small></div>
+      <div class="li-amount neg">−${fmt(g.monto)}</div>
+    </div>`).join('')+`<div style="text-align:right;padding:8px 12px 0;font-weight:700;color:var(--red)">Total gastado: −${fmt(total)}</div>`;
+  openModal('modalKpi');
 }
 
 function showMedioModal(tipo, medio){
@@ -1314,9 +1351,8 @@ function flashMsg(id,msg){
 // ══════════════════════════════════════════
 function renderAll(){
   asegurarPresupuestos();
-  // Llenar datalists de categorías
   ['catSugeridas','catGastoSugeridas','catEditSugeridas'].forEach(id=>fillCatDatalist(id));
-  rHeader();rHoy();rMov();rPresup();rAhorro();rCierre();rCfg();
+  rHeader();rHoy();rMov();rPresup();rAhorro();rDetalle();rCierre();rCfg();
 }
 
 function rHeader(){
@@ -1415,11 +1451,14 @@ function rHoy(){
         }
       }
       const barColor=c.pct>=100?'var(--red)':c.pct>80?'var(--amber)':'var(--green)';
-      pendDiv.innerHTML+=`<div style="padding:10px 12px;border-radius:9px;background:var(--paper);border:1px solid var(--border);margin-bottom:5px">
+      pendDiv.innerHTML+=`<div style="padding:10px 12px;border-radius:9px;background:var(--paper);border:1px solid var(--border);margin-bottom:5px;cursor:pointer" onclick="showCatModal('${c.cat}')">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-          <div><strong style="font-size:.84rem">${CE[c.cat]||'🎀'} ${CNOMBRE[c.cat]}${cuotasTxt}</strong></div>
-          <div style="font-size:.82rem;font-weight:700;color:${c.saldo<=0?'var(--red)':'var(--ink2)'}">
-            ${c.saldo>0?fmt(c.saldo)+' libre':'⚠️ excedido '+fmt(Math.abs(c.saldo))}
+          <div><strong style="font-size:.84rem">${getCatEmoji(c.cat)} ${getCatLabel(c.cat)}${cuotasTxt}</strong></div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="font-size:.82rem;font-weight:700;color:${c.saldo<=0?'var(--red)':'var(--ink2)'}">
+              ${c.saldo>0?fmt(c.saldo)+' libre':'⚠️ excedido '+fmt(Math.abs(c.saldo))}
+            </div>
+            <span style="color:var(--ink3);font-size:.8rem">›</span>
           </div>
         </div>
         <div style="height:6px;background:var(--paper3);border-radius:4px;overflow:hidden;margin-bottom:3px">
@@ -1564,6 +1603,66 @@ function rAhorro(){
       ${pct<100?`<button class="btn btn-amber btn-sm" onclick="openAbonar('${m.id}')">+ Abonar</button>`:''}
     </div>`;
   }).join('');
+}
+
+
+function rDetalle(){
+  const{totalIng,totalGas,caja}=calcCaja();
+  const presupTotal=totalPresupMes();
+  const cats=calcPresupCats();
+  const diezmoMes=db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat==='diezmo').reduce((s,g)=>s+g.monto,0);
+  const totalGasReal=totalGas; // sin diezmo
+
+  // Resumen top
+  document.getElementById('detalleResumen').innerHTML=`
+    <div class="kcard green"><div class="kl">💚 Total ingresos</div><div class="kv">${fmt(totalIng)}</div><div class="ks">cobrados este mes</div></div>
+    <div class="kcard purple"><div class="kl">📋 Total presupuestado</div><div class="kv">${fmt(presupTotal)}</div><div class="ks">fijos + diezmo</div></div>
+    <div class="kcard red"><div class="kl">💸 Total gastado real</div><div class="kv">${fmt(totalGasReal)}</div><div class="ks">sin diezmo</div></div>
+    <div class="kcard ${totalIng-presupTotal>=0?'blue':'amber'}"><div class="kl">${totalIng-presupTotal>=0?'✅ Superávit':'⚠️ Déficit'}</div><div class="kv">${fmt(Math.abs(totalIng-presupTotal))}</div><div class="ks">ingresos vs presupuesto</div></div>`;
+
+  // Lista por categoría
+  const lista=document.getElementById('detalleLista');
+  const rows=[...cats.filter(c=>c.monto>0||c.gastado>0)];
+
+  // Agregar diezmo como fila especial
+  if(diezmoMes>0){
+    rows.push({cat:'diezmo',nombre:'Diezmo',emoji:'🙏',monto:diezmoMes,gastado:diezmoMes,saldo:0,pct:100,freq:'dinamico'});
+  }
+
+  // Ordenar por presupuestado desc
+  rows.sort((a,b)=>b.monto-a.monto);
+
+  lista.innerHTML=rows.map(r=>{
+    const pct=r.monto>0?Math.min(100,(r.gastado/r.monto*100)):0;
+    const barColor=pct>=100?'var(--red)':pct>80?'var(--amber)':'var(--accent)';
+    const emoji=r.emoji||getCatEmoji(r.cat);
+    const label=r.nombre||getCatLabel(r.cat);
+    const isDiezmo=r.cat==='diezmo';
+    return`<div class="card" style="margin-bottom:8px;cursor:${isDiezmo?'default':'pointer'}" ${isDiezmo?'':'onclick="showCatModal(''+r.cat+'')"'}>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:1.1rem">${emoji}</span>
+          <strong style="font-size:.88rem">${label}</strong>
+          ${isDiezmo?'<span class="tag tag-purple" style="font-size:.65rem">dinámico</span>':''}
+        </div>
+        <div style="display:flex;gap:10px;font-size:.8rem;text-align:right">
+          <div><div style="color:var(--ink3);font-size:.68rem">PRESUP.</div><strong>${fmt(r.monto)}</strong></div>
+          <div><div style="color:var(--ink3);font-size:.68rem">GASTADO</div><strong style="color:${r.gastado>r.monto?'var(--red)':'var(--ink)'}">${fmt(r.gastado)}</strong></div>
+          <div><div style="color:var(--ink3);font-size:.68rem">${r.saldo>=0?'LIBRE':'EXCEDIDO'}</div><strong style="color:${r.saldo<0?'var(--red)':r.saldo===0?'var(--ink3)':'var(--green)'}">${fmt(Math.abs(r.saldo))}</strong></div>
+        </div>
+      </div>
+      <div style="height:7px;background:var(--paper3);border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${pct.toFixed(1)}%;background:${barColor};border-radius:4px;transition:width .5s"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--ink3);margin-top:3px">
+        <span>${isDiezmo?'10% de ingresos · se acumula al cobrar':(r.freq?({mensual:'Mensual',semanal:'Semanal',quincenal:'Quincenal',cada25m:'Cada 2.5m',unico:'Único'}[r.freq]||r.freq):'')}</span>
+        <span>${pct.toFixed(0)}% ejecutado</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Si no hay nada
+  if(!rows.length) lista.innerHTML='<div class="empty"><div class="empty-icon">📋</div>Sin categorías configuradas</div>';
 }
 
 function rCierre(){
