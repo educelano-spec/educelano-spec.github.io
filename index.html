@@ -657,6 +657,15 @@ const DFT=()=>({
 });
 let db=DFT();
 
+function fixDiezmoTipo(){
+  // Corregir diezmos mal guardados como 'pagado' — resetear a 'planificado'
+  // SOLO si el usuario nunca tocó el botón "Marcar entregado" intencionalmente
+  // Detectamos: si hay diezmos con tipo='pagado' pero el config no tiene diezmoEntregadoMes
+  if(!db.config.diezmoEntregado){
+    db.gastos.filter(g=>g.cat==='diezmo'&&g.tipo==='pagado').forEach(g=>{g.tipo='planificado';});
+  }
+}
+
 function load(){
   const d=ls();
   if(d){try{const p=JSON.parse(d);db={...DFT(),...p};['ingresos','gastos','presupuestos','metas','historial'].forEach(k=>{if(!Array.isArray(db[k]))db[k]=[];});}catch(e){}}
@@ -728,8 +737,13 @@ function getPresupuestos(){
 }
 function calcPresupCats(){
   const gastoPorCat={};
-  db.gastos.filter(g=>inMesActual(g.fecha)).forEach(g=>{
-    gastoPorCat[g.cat]=(gastoPorCat[g.cat]||0)+g.monto;
+  // Normalizar keys de gastos contra getAllCats() para resolver mismatches
+  const allCats=getAllCats();
+  db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat!=='diezmo').forEach(g=>{
+    // Buscar la key canónica de este gasto
+    const found=allCats.find(x=>x.key===g.cat||x.label.toLowerCase()===g.cat.toLowerCase());
+    const canonKey=found?found.key:g.cat;
+    gastoPorCat[canonKey]=(gastoPorCat[canonKey]||0)+g.monto;
   });
   return getPresupuestos().filter(p=>p.cat!=='diezmo').map(p=>{
     const gastado=gastoPorCat[p.cat]||0;
@@ -869,7 +883,9 @@ function addGasto(){
   const monto=parseFloat(document.getElementById('gMonto').value);
   if(!desc||!monto||monto<=0){alert('Completá descripción y monto');return;}
   const gCatNombre=document.getElementById('gCat').value.trim();
-  const gCatKey=slugCat(gCatNombre)||'varios';
+  // Buscar la key real de la categoría por nombre en getAllCats()
+  const gCatFound=getAllCats().find(x=>x.label.toLowerCase()===gCatNombre.toLowerCase()||x.key===gCatNombre.toLowerCase());
+  const gCatKey=gCatFound?gCatFound.key:(slugCat(gCatNombre)||'varios');
   db.gastos.push({
     id:uid(),desc,
     cat:gCatKey,
@@ -890,7 +906,9 @@ function showCatModal(cat){
   const emoji=getCatEmoji(cat);
   document.getElementById('kpiModalTitulo').textContent=emoji+' '+label;
   const body=document.getElementById('kpiModalBody');
-  const items=db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat===cat).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  // Buscar gastos por key exacta O por nombre similar (por si se guardó con slugCat diferente)
+  const catAliases=getAllCats().filter(x=>x.key===cat||x.label.toLowerCase()===getCatLabel(cat).toLowerCase()).map(x=>x.key);
+  const items=db.gastos.filter(g=>inMesActual(g.fecha)&&(g.cat===cat||catAliases.includes(g.cat))).sort((a,b)=>b.fecha.localeCompare(a.fecha));
   const presup=db.presupuestos.find(p=>p.cat===cat);
   const total=items.reduce((s,g)=>s+g.monto,0);
   const medioIcon={'tc':'💳','td':'🏦','transferencia':'📲','efectivo':'💵','cheque':'🏦'};
@@ -1032,10 +1050,16 @@ function showKpiModal(tipo){
 }
 
 function pagarDiezmo(){
-  const mes=db.config.mesPeriodo||mesActual();
-  // Marcar todos los diezmos pendientes del mes como pagados
+  db.config.diezmoEntregado=true; // flag: el usuario lo marcó intencionalmente
   db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat==='diezmo'&&g.tipo!=='pagado')
     .forEach(g=>{ g.tipo='pagado'; });
+  save();renderAll();
+}
+
+function deshacerDiezmo(){
+  db.config.diezmoEntregado=false;
+  db.gastos.filter(g=>inMesActual(g.fecha)&&g.cat==='diezmo'&&g.tipo==='pagado')
+    .forEach(g=>{ g.tipo='planificado'; });
   save();renderAll();
 }
 
@@ -1170,7 +1194,9 @@ function savePresup(){
   const nombre=document.getElementById('mpNombre').value.trim();
   const emoji=document.getElementById('mpEmoji').value.trim()||'🎀';
   if(!nombre){alert('Escribí el nombre de la categoría');return;}
-  const cat=slugCat(nombre);
+  // Buscar si ya existe esa categoría para no crear duplicados
+  const catFound=getAllCats().find(x=>x.label.toLowerCase()===nombre.toLowerCase());
+  const cat=catFound?catFound.key:slugCat(nombre);
   const monto=parseFloat(document.getElementById('mpMonto').value);
   const freq=document.getElementById('mpFreq').value;
   const duracion=document.getElementById('mpDuracion').value;
@@ -1305,6 +1331,7 @@ function cerrarMes(){
     }
   });
   db.config.mesPeriodo=mesActual();
+  db.config.diezmoEntregado=false;
   save();ST('hoy');
   alert('✅ Mes cerrado. El historial fue guardado.');
 }
@@ -1394,7 +1421,7 @@ function rHoy(){
       diezmoDiv.innerHTML=`<div class="card" style="border-left:4px solid #7c3aed;margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
           <div class="card-title" style="margin-bottom:0"><span>🙏</span> Diezmo del mes</div>
-          ${diezmoGenerado>0?`<button class="btn btn-primary btn-sm" onclick="pagarDiezmo()">✅ Marcar entregado</button>`:'<span class="tag tag-green">✅ Entregado</span>'}
+          ${diezmoGenerado>0?`<button class="btn btn-primary btn-sm" onclick="pagarDiezmo()">✅ Marcar entregado</button>`:`<span class="tag tag-green" style="cursor:pointer" onclick="deshacerDiezmo()">✅ Entregado · deshacer</span>`}
         </div>
         <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:.82rem">
           <div><div style="color:var(--ink3);font-size:.72rem">TOTAL MES (${db.config.diezmo||10}%)</div><div style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--accent)">${fmt(diezmoTotal)}</div></div>
