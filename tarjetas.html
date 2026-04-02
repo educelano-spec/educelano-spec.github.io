@@ -784,40 +784,31 @@ function simMonths(bgt, strat, maxM=120){
     let payments;
 
     if(totalMin >= bgt) {
-      // Budget doesn't even cover minimums — scale down proportionally so total = budget
-      // Each card gets: min[i] * (budget / totalMin)
+      // Budget doesn't cover minimums — scale ALL payments down proportionally so total = budget exactly
       const scale = bgt / totalMin;
       payments = mins.map(m => m * scale);
     } else {
-      // Budget covers all minimums — distribute extra by strategy
+      // Budget covers all minimums — distribute the EXTRA by strategy
       payments = [...mins];
-      let extra = bgt - totalMin;
+      const extra = bgt - totalMin;
 
       if(strat === 'proportional') {
-        // Distribute extra proportionally to debt size, respecting budget ceiling
+        // Distribute extra proportionally to debt size
         const td = state.reduce((s,c)=>s+c.debt,0);
-        payments = state.map((s,i) => {
-          if(s.debt <= 0) return 0;
-          const proportionalShare = bgt * (s.debt / td);
-          // Must pay at least the minimum, but total cannot exceed budget
-          return Math.max(mins[i], proportionalShare);
+        state.forEach((s,i) => {
+          if(s.debt > 0 && td > 0) payments[i] += extra * (s.debt / td);
         });
-        // Re-normalize if rounding pushed total over budget
-        const total = payments.reduce((a,b)=>a+b,0);
-        if(total > bgt) {
-          const scale = bgt / total;
-          payments = payments.map(p => p * scale);
-        }
       } else {
+        let remaining = extra;
         let sorted=state.map((_,i)=>i).filter(i=>state[i].debt>0);
         if(strat==='avalanche') sorted.sort((a,b)=>state[b].rate-state[a].rate);
         else if(strat==='snowball') sorted.sort((a,b)=>state[a].debt-state[b].debt);
         else if(strat==='hybrid') sorted.sort((a,b)=>(state[b].debt*state[b].rate)-(state[a].debt*state[a].rate));
         for(const i of sorted){
           const maxAdd=Math.max(0,state[i].debt+interests[i]-payments[i]);
-          const add=Math.min(extra,maxAdd);
-          payments[i]+=add; extra-=add;
-          if(extra<=0) break;
+          const add=Math.min(remaining,maxAdd);
+          payments[i]+=add; remaining-=add;
+          if(remaining<=0) break;
         }
       }
     }
@@ -882,13 +873,9 @@ function renderStrategy(){
   const {history}=simMonths(budget,strategy,1);
   if(!history.length){document.getElementById('plan-table-wrap').innerHTML='';return;}
   const m1=history[0];
-  // Find priority
-  const totalMin=cards.map((c,i)=>{const int=c.debt*monthlyRate(c);return Math.min(Math.max(int+monthlyGastos(c),c.minPay||0),c.debt+int);}).reduce((a,b)=>a+b,0);
-  let sortedForPrio=cards.map((_,i)=>i).filter(i=>cards[i].debt>0);
-  if(strategy==='avalanche') sortedForPrio.sort((a,b)=>(cards[b].rate||0)-(cards[a].rate||0));
-  else if(strategy==='snowball') sortedForPrio.sort((a,b)=>cards[a].debt-cards[b].debt);
-  else if(strategy==='hybrid') sortedForPrio.sort((a,b)=>(cards[b].debt*(cards[b].rate||0))-(cards[a].debt*(cards[a].rate||0)));
-  const prioName=budget>totalMin&&sortedForPrio.length?cards[sortedForPrio[0]].name:null;
+
+  const totalMinReq=cards.reduce((s,c)=>{const int=c.debt*monthlyRate(c);return s+Math.min(Math.max(int+monthlyGastos(c),c.minPay||0),c.debt+int);},0);
+  const minsExceedBudget = totalMinReq > budget;
 
   const tbody=m1.byCard.map((p,i)=>{
     const c=cards.find(x=>x.name===p.name)||cards[i]||{};
@@ -896,8 +883,10 @@ function renderStrategy(){
     const int=p.interest;
     const gastos=monthlyGastos(c);
     const minRequired=Math.min(Math.max(int+gastos,c.minPay||0),c.debt+int);
-    const belowMin=p.payment<minRequired-1;
-    const isPrio=p.name===prioName;
+    // "Bajo mín": payment is meaningfully below the required minimum
+    const belowMin = p.payment < minRequired - 1;
+    // "Extra": only show when budget covers all minimums AND this card got more than its minimum
+    const hasExtra = !minsExceedBudget && p.payment > minRequired + 1;
     return `<tr>
       <td class="nc"><span class="cdot" style="background:${c.color||COLORS[i%COLORS.length]}"></span>${p.name}</td>
       <td>${(c.rate||0).toFixed(2)}%</td>
@@ -905,13 +894,11 @@ function renderStrategy(){
       <td class="yellow">${fmt(int,cur)}</td>
       <td class="blue">${fmt(gastos,cur)}</td>
       <td>${fmt(minRequired,cur)}</td>
-      <td style="font-weight:700;${belowMin?'color:var(--danger)':''}">${fmt(p.payment,cur)}</td>
-      <td>${isPrio?'<span class="bdg by">⚡ Extra</span>':''} ${belowMin?'<span class="bdg br">⚠️ Bajo mín</span>':''}</td>
+      <td style="font-weight:700;${belowMin?'color:var(--danger)':hasExtra?'color:var(--success)':''}">${fmt(p.payment,cur)}</td>
+      <td>${hasExtra?'<span class="bdg by">⚡ Extra</span>':''} ${belowMin?'<span class="bdg br">⚠️ Bajo mín</span>':''}</td>
     </tr>`;
   }).join('');
   const totalPay=m1.byCard.reduce((s,p)=>s+p.payment,0);
-  const totalMinReq=cards.reduce((s,c,i)=>{const int=c.debt*monthlyRate(c);return s+Math.min(Math.max(int+monthlyGastos(c),c.minPay||0),c.debt+int);},0);
-  const minsExceedBudget = totalMinReq > budget;
   document.getElementById('plan-table-wrap').innerHTML=`
     ${minsExceedBudget ? `<div class="note-box" style="margin-bottom:12px;">
       ⚠️ <strong>Los mínimos requeridos (${fmt(totalMinReq)}) superan tu presupuesto (${fmt(budget)}).</strong>
